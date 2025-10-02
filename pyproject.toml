@@ -3,7 +3,7 @@ name = "orchidarium"
 version = "0.0.1"
 description = "Orchestration and scripts for publishing metrics from sensors in an orchidarium to InfluxDB for Grafana dashboards"
 authors = ["Emma Doyle <emma.ann.doyle@gmail.com>"]
-license = "MIT"
+license = "GPLv3"
 readme = "README.md"
 
 [tool.poetry.dependencies]
