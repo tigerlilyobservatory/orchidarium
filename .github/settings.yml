@@ -1,0 +1,22 @@
+# These settings are synced to GitHub by https://probot.github.io/apps/settings/
+_extends: .github
+
+repository:
+  name: orchidarium
+  description: Orchestration and scripts for publishing metrics from sensors in an orchidarium to InfluxDB for Grafana dashboards
+  homepage: https://github.com/tigerlilyobservatory/orchidarium
+  private: false
+  topics: orchids, terrarium, sensors, python
+
+branches:
+  - name: master
+    protection:
+      required_status_checks:
+        strict: true
+        contexts: []
+          # - dynamic-continuation
+
+      restrictions:
+        users: []
+        apps: []
+        teams: []
