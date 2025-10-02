@@ -1,0 +1,71 @@
+fail_fast: true
+repos:
+-   repo: https://gitlab.com/vojko.pribudic.foss/pre-commit-update
+    rev: v0.8.0
+    hooks:
+    -   id: pre-commit-update
+
+  # Requires hadolint binary on local machine.
+-   repo: https://github.com/hadolint/hadolint
+    rev: v2.14.0
+    hooks:
+    -   id: hadolint
+        args:
+        -   --config
+        -   config/.hadolint.yaml
+        -   Dockerfile
+
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+    -   id: trailing-whitespace
+    -   id: check-added-large-files
+        args: [--maxkb=10000, --enforce-all]
+    -   id: check-executables-have-shebangs
+    -   id: check-shebang-scripts-are-executable
+    -   id: mixed-line-ending
+
+-   repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.18.2
+    hooks:
+    -   id: mypy
+        args:
+        -   --install-types
+        -   --non-interactive
+        -   --config-file=config/.mypy.ini
+
+-   repo: https://github.com/jumanjihouse/pre-commit-hooks
+    rev: 3.0.0
+    hooks:
+    -   id: shellcheck
+        args:
+        -   -x
+
+  # - repo: https://github.com/emmeowzing/dynamic-continuation-orb
+  #   rev: v3.6.8
+  #   hooks:
+  #     - id: circleci-config-validate
+
+-   repo: https://github.com/python-poetry/poetry
+    rev: 2.2.1
+    hooks:
+      - id: poetry-check
+      - id: poetry-lock
+
+-   repo: https://github.com/PyCQA/pylint
+    rev: v3.3.8
+    hooks:
+    -   id: pylint
+        args:
+        -   --rcfile=.pylintrc
+        -   src
+
+-   repo: https://github.com/abravalheri/validate-pyproject
+    rev: v0.24.1
+    hooks:
+    -   id: validate-pyproject
+
+-   repo: https://github.com/premiscale/pre-commit-hooks
+    rev: v0.0.9
+    hooks:
+    -   id: msg-issue-prefix
