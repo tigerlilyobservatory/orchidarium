@@ -382,6 +382,34 @@ files = [
 ]
 
 [[package]]
+name = "sht20"
+version = "0.1.4"
+description = "Python3 I2C Driver & Application for SHT20 Temperature & Humidity Sensor"
+optional = false
+python-versions = ">=3.6"
+groups = ["main"]
+files = [
+    {file = "sht20-0.1.4-py3-none-any.whl", hash = "sha256:9f0dcc5be13bec40a2a226287a0e6b9a9dc2385e19b7e94b379e0b07528d0e7b"},
+    {file = "sht20-0.1.4.tar.gz", hash = "sha256:72a1e547894f95696a788fb7b0056275cd2e79ee76db865ed7aeb4ea60a817b7"},
+]
+
+[[package]]
+name = "smbus2"
+version = "0.5.0"
+description = "smbus2 is a drop-in replacement for smbus-cffi/smbus-python in pure Python"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "smbus2-0.5.0-py2.py3-none-any.whl", hash = "sha256:1a15c3b9fa69357beb038cc0b5d37939702f8bfde1ddc89ca9f17d8461dbe949"},
+    {file = "smbus2-0.5.0.tar.gz", hash = "sha256:4a5946fd82277870c2878befdb1a29bb28d15cda14ea4d8d2d54cf3d4bdcb035"},
+]
+
+[package.extras]
+docs = ["sphinx (>=1.5.3)"]
+qa = ["flake8"]
+
+[[package]]
 name = "tomli"
 version = "2.2.1"
 description = "A lil' TOML parser"
@@ -473,4 +501,4 @@ test = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "coverage-enable-subprocess
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "e36c0caadb9e529fdc7c90d8a0a5f50ca0ba0a868937b46c02a48135bad37a0a"
+content-hash = "193999d4d38a4cdbefd089b22c665469cdd9315eb95f5861cf6db7bc68c91764"
