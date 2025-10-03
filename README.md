@@ -1,5 +1,7 @@
 # Orchidarium
 
+![GitHub Release](https://img.shields.io/github/v/release/tigerlilyobservatory/orchidarium)
+
 A collection of scripts and configuration files for collecting and publishing metrics from USB sensors in an orchid terrarium.
 
 ## Hardware

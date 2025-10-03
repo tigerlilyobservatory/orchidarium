@@ -32,7 +32,7 @@ repos:
 #         args:
 #         -   --install-types
 #         -   --non-interactive
-#         -   --config-file=config/.mypy.ini
+#         -   --config-file=pyproject.toml
 
 -   repo: https://github.com/jumanjihouse/pre-commit-hooks
     rev: 3.0.0

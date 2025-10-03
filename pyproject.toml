@@ -3,8 +3,21 @@ name = "orchidarium"
 version = "0.0.1"
 description = "Orchestration and scripts for publishing metrics from sensors in an orchidarium to InfluxDB for Grafana dashboards"
 authors = ["Emma Doyle <emma.ann.doyle@gmail.com>"]
-license = "GPLv3"
+maintainers = ["Emma Doyle <emma.ann.doyle@gmail.com>"]
+license = "GPL-3.0-or-later"
 readme = "README.md"
+packages = [
+  { include = "orchidarium", from = "src" },
+]
+include = [
+  "LICENSE"
+]
+keywords = [
+    "python",
+    "orchids",
+    "plants",
+    "terrarium"
+]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -20,3 +33,11 @@ pylint = "^3.3.8"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+orchidarium = "orchidarium.main:cli"
+
+[tool.mypy]
+python_version = "3.11"
+strict_optional = "true"
+ignore_missing_imports = "true"

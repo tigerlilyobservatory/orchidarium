@@ -9,6 +9,7 @@ import os
 import logging
 import sys
 
+from contextlib import AbstractContextManager
 from functools import partial
 from time import sleep
 from usb.core import find, USBTimeoutError, USBError
@@ -68,7 +69,7 @@ def communicate(f: Callable, delay: int =1) -> array:
             log.error(f'{e}')
 
 
-class InterfaceClaim:
+class InterfaceClaim(AbstractContextManager):
     """
     Wrap setup and teardown while connecting to a USB interface in a context manager.
     """
@@ -201,6 +202,7 @@ def main() -> int:
 
         endpoint = device[0][(0,0)][0]
 
+        # See the following manufacturers document for a table of instruction codes.
         # https://sensirion.com/media/documents/CCDE1377/635000A2/Sensirion_Datasheet_Humidity_Sensor_SHT20.pdf
         TRIG_TEMP_HOLD = b'\0xE3'
         TRIG_HUMID_HOLD = b'\0xE5'
