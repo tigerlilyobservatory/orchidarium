@@ -1,0 +1,111 @@
+services:
+  orchidarium:
+    container_name: orchidarium
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: develop
+      pull: true
+    environment:
+      - PREMISCALE_TOKEN=123
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
+    depends_on:
+      influxdb:
+        condition: service_healthy
+    volumes:
+      - /dev/bus/usb:/dev/bus/usb:rw
+    privileged: true
+    healthcheck:
+      test: curl http://localhost:8085/healthcheck
+      start_period: 5s
+      interval: 5s
+      timeout: 5s
+      retries: 3
+    ports:
+      - 8085:8085
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:9.5.20
+    user: '0'
+    restart: unless-stopped
+    environment:
+      - TERM=linux
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-polystat-panel
+      - GF_PATHS_CONFIG=/etc/grafana/grafana.ini
+      - GF_PATHS_DATA=/var/lib/grafana
+      - GF_SECURITY_ADMIN_PASSWORD=orchidarium
+      - GF_SECURITY_ADMIN_USER=orchidarium
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_USERS_AUTO_ASSIGN_ORG_ROLE=Viewer
+      - GF_USERS_AUTO_ASSIGN_ORG=true
+      - GF_USERS_AUTO_ASSIGN_ROLE=Viewer
+      - GF_USERS_DEFAULT_THEME=light
+      - GF_USERS_VIEWERS_CAN_EDIT=true
+      - GF_USERS_VIEWERS_CAN_SAVE_DASHBOARDS=true
+      - GF_USERS_VIEWERS_CAN_SAVE_TEMPORARY=true
+    ports:
+      - 3000:3000
+    volumes:
+      # Certs
+      - ./certs/cert.pem:/etc/grafana/cert.pem:ro
+      - ./certs/key.pem:/etc/grafana/key.pem:ro
+      # SQLite data
+      - grafana-data:/var/lib/grafana
+      # Config
+      - ./config/grafana/config.ini:/etc/grafana/grafana.ini:ro
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 1G
+    depends_on:
+      influxdb:
+        condition: service_healthy
+      mysql-grafana:
+        condition: service_healthy
+    healthcheck:
+      test: curl http://localhost:3000
+      interval: 3s
+      retries: 5
+      start_period: 5s
+      timeout: 5s
+  influxdb:
+    container_name: influxdb
+    image: influxdb:2.7.6
+    environment:
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=orchidarium
+      #- DOCKER_INFLUXDB_INIT_RETENTION=1w
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=orchidarium
+      - DOCKER_INFLUXDB_INIT_PASSWORD=orchidarium
+      - DOCKER_INFLUXDB_INIT_ORG=orchidarium
+      - DOCKER_INFLUXDB_INIT_BUCKET=orchidarium
+    ports:
+      - 8086:8086
+    networks:
+      - controller
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 1G
+    healthcheck:
+      test: influx ping || exit 1
+      interval: 3s
+      retries: 5
+      start_period: 5s
+      timeout: 5s
