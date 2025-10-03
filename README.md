@@ -2,6 +2,10 @@
 
 ![GitHub Release](https://img.shields.io/github/v/release/tigerlilyobservatory/orchidarium)
 
+<p align="center" width="100%">
+  <img width="20%" src="./img/orchid.png" alt="orchid">
+</p>
+
 A collection of scripts and configuration files for collecting and publishing metrics from USB sensors in an orchid terrarium.
 
 ## Hardware
