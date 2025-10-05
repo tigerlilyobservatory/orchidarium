@@ -26,6 +26,7 @@ if TYPE_CHECKING:
 
 
 # Globals
+
 log = logging.getLogger(__name__)
 
 
@@ -35,7 +36,28 @@ env: Dict[str, str]  = {
     'USB_PRODUCT_ID': os.getenv('USB_PRODUCT_ID', '0x7523')
 }
 
+# Constants
+
+# See the following manufacturers document for a table of instruction codes.
+# https://sensirion.com/media/documents/CCDE1377/635000A2/Sensirion_Datasheet_Humidity_Sensor_SHT20.pdf
+TRIG_TEMP_HOLD = b'\0xE3'
+TRIG_HUMID_HOLD = b'\0xE5'
+TRIG_TEMP_NOHOLD = b'\0xF3'
+TRIG_HUMID_NOHOLD = b'\0xF5'
+WRITE_USER_REG = b'\0xE6'
+READ_USER_REG = b'\0xE7'
+SOFT_RESET = b'\0x00'
+
+TEMP_RES_14bit = b'\0x00'
+TEMP_RES_13bit = b'\0x80'
+TEMP_RES_12bit = b'\0x01'
+TEMP_RES_11bit = b'\0x81'
+END_OF_BATTERY = b'\0x40'
+ENABLE_HEATER = b'\0x04'
+DISABLE_OTP_RELOAD = b'\0x02'
+
 # Validate
+
 try:
     int(env['USB_VENDOR_ID'], base=16)
     int(env['USB_PRODUCT_ID'], base=16)
@@ -124,7 +146,7 @@ class InterfaceClaim(AbstractContextManager):
 
 def read(endpoint: Any, device: Any) -> bytes:
     """
-
+    Read data from a device.
 
     Args:
         endpoint (Any): _description_
@@ -143,9 +165,9 @@ def read(endpoint: Any, device: Any) -> bytes:
     ).tobytes()
 
 
-def write(endpoint: Any, device: Any, data: bytes) -> bytes:
+def write(endpoint: Any, device: Any, data: bytes) -> bytes | None:
     """
-
+    Write data to a device.
 
     Args:
         endpoint (Any): _description_
@@ -202,35 +224,21 @@ def main() -> int:
 
         endpoint = device[0][(0,0)][0]
 
-        # See the following manufacturers document for a table of instruction codes.
-        # https://sensirion.com/media/documents/CCDE1377/635000A2/Sensirion_Datasheet_Humidity_Sensor_SHT20.pdf
-        TRIG_TEMP_HOLD = b'\0xE3'
-        TRIG_HUMID_HOLD = b'\0xE5'
-        TRIG_TEMP_NOHOLD = b'\0xF3'
-        TRIG_HUMID_NOHOLD = b'\0xF5'
-        WRITE_USER_REG = b'\0xE6'
-        READ_USER_REG = b'\0xE7'
-        SOFT_RESET = b'\0x00'
-
-        TEMP_RES_14bit = b'\0x00'
-        TEMP_RES_13bit = b'\0x80'
-        TEMP_RES_12bit = b'\0x01'
-        TEMP_RES_11bit = b'\0x81'
-        END_OF_BATTERY = b'\0x40'
-        ENABLE_HEATER = b'\0x04'
-        DISABLE_OTP_RELOAD = b'\0x02'
-
-        user_data = write(
+        if (_user_data := write(
             endpoint,
             device,
             READ_USER_REG
-        )
+        )) is None:
+            return 1
 
+        _and = lambda a, b: (int.from_bytes(a, 'big') & int.from_bytes(b, 'big')).to_bytes(max(len(a), len(b)), 'big')
+        _or = lambda a, b: (int.from_bytes(a, 'big') | int.from_bytes(b, 'big')).to_bytes(max(len(a), len(b)), 'big')
+        _add = lambda a, b:
+
+        user_data = int.to_bytes(_user_data)
+        user_data = _and(user_data, b'\0x38')
         print(user_data)
-        user_data &= 0x38
-        print(user_data)
-        user_data = bin(user_data)
-        user_data |= TEMP_RES_14bit + DISABLE_OTP_RELOAD
+        user_data = _or(user_data, (TEMP_RES_14bit + DISABLE_OTP_RELOAD))
 
         write(
             endpoint,

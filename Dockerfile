@@ -34,21 +34,21 @@ RUN chown -R orchidarium:orchidarium .
 
 USER 10001
 
-COPY --chown=passoperator:passoperator --chmod=550 bin/entrypoint.sh /entrypoint.sh
+COPY --chown=orchidarium:orchidarium --chmod=550 bin/entrypoint.sh /entrypoint.sh
 
 FROM base AS develop
 
 COPY src/ ./src/
 COPY README.md LICENSE poetry.lock pyproject.toml ./
 
-ENV PATH=/opt/pass-operator/.local/bin:${PATH}
+ENV PATH=/opt/orchidarium/.local/bin:${PATH}
 
 # Set up SSH and install the pass-operator package from my private registry.
 RUN mkdir -p "$HOME"/.local/bin "$HOME"/.ssh "$HOME"/.gnupg \
     && chmod 700 "$HOME"/.gnupg \
     && curl -sSL https://install.python-poetry.org | python3 - \
     && poetry install \
-    && poetry run passoperator --version
+    && poetry run orchidarium --version
 
 ENTRYPOINT ["/tini", "--"]
 CMD [ "/cmd.sh" ]
