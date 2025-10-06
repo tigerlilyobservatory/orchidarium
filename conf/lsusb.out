@@ -1,5 +1,4 @@
-Bus 001 Device 029: ID 0487:0007 Stewart Connector TR-USB HID
-Couldn't open device, some information will be missing
+Bus 001 Device 029: ID 0487:0007 Stewart Connector TR-USB HID                                                                                                                                                                                                                                                           [209/1981]
 Device Descriptor:
   bLength                18
   bDescriptorType         1
@@ -65,6 +64,8 @@ Device Descriptor:
           Usage Type               Data
         wMaxPacketSize     0x0040  1x 64 bytes
         bInterval               2
+Device Status:     0x0001
+  Self Powered
 ---
 Bus 001 Device 025: ID 1a86:7523 QinHeng Electronics CH340 serial converter
 Device Descriptor:
