@@ -9,6 +9,7 @@ import os
 import logging
 import sys
 
+from bitstring import BitArray
 from contextlib import AbstractContextManager
 from functools import partial
 from time import sleep
@@ -224,6 +225,11 @@ def main() -> int:
 
         endpoint = device[0][(0,0)][0]
 
+        print(read(
+            endpoint,
+            device
+        ))
+
         if (_user_data := write(
             endpoint,
             device,
@@ -233,7 +239,6 @@ def main() -> int:
 
         _and = lambda a, b: (int.from_bytes(a, 'big') & int.from_bytes(b, 'big')).to_bytes(max(len(a), len(b)), 'big')
         _or = lambda a, b: (int.from_bytes(a, 'big') | int.from_bytes(b, 'big')).to_bytes(max(len(a), len(b)), 'big')
-        _add = lambda a, b:
 
         user_data = int.to_bytes(_user_data)
         user_data = _and(user_data, b'\0x38')
