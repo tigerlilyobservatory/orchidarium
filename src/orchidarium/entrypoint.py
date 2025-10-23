@@ -7,15 +7,13 @@ from __future__ import annotations
 
 import logging
 import sys
-import re
 
-from time import sleep
-from usb.core import find
-from orchidarium import env
-from orchidarium.lib.bus import InterfaceClaim, read
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from orchidarium.publishers.influxdb import InfluxDBPublisher
+from orchidarium.api.health import HealthCheck
 from orchidarium.sensors.soil import SoilSensor
 from orchidarium.sensors.humidity import HumiditySensor
-
+from orchidarium import env
 
 
 log = logging.getLogger(__name__)
@@ -25,9 +23,23 @@ log = logging.getLogger(__name__)
 
 
 def main() -> int:
+    publisher = InfluxDBPublisher()
+    publisher.connect()
 
-    SoilSensor().publish()
-    HumiditySensor().publish()
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        pool.submit()
+        SoilSensor().publish(
+            publisher
+        )
+
+        HumiditySensor().publish(
+            publisher
+        )
+
+        HealthCheck(port=int(env['HEALTHCHECK_PORT']))
+
+        for future in as_completed(pool):
+
 
 
 def cli() -> None:
