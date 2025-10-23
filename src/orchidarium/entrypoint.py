@@ -17,6 +17,7 @@ from orchidarium.sensors.soil import SoilSensor
 from orchidarium.sensors.humidity import HumiditySensor
 
 
+
 log = logging.getLogger(__name__)
 
 
@@ -24,6 +25,9 @@ log = logging.getLogger(__name__)
 
 
 def main() -> int:
+
+    SoilSensor().publish()
+    HumiditySensor().publish()
 
     device = find(
         idVendor=int(

@@ -1,0 +1,17 @@
+"""
+ABC that defines the API for publishing metrics.
+"""
+
+
+from abc import abstractmethod, ABC
+
+
+class Publisher(ABC):
+
+    @abstractmethod
+    def publish_datapoint(self, datum: Any) -> bool:
+        raise NotImplementedError
+
+    @abstractmethod
+    def publish_datapoints(self, data: List[Any]) -> bool:
+        raise NotImplementedError
