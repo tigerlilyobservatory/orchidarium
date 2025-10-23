@@ -37,7 +37,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-orchidarium = "orchidarium.main:cli"
+orchidarium = "orchidarium.entrypoint:cli"
 
 [tool.mypy]
 python_version = "3.11"
