@@ -38,8 +38,7 @@ def main() -> int:
 
         HealthCheck(port=int(env['HEALTHCHECK_PORT']))
 
-        for future in as_completed(pool):
-
+        for _ in as_completed(pool): pass
 
 
 def cli() -> None:

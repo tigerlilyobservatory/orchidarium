@@ -5,7 +5,7 @@ Provide an InfluxDB Publisher subclass to interact cleanly with the InfluxDB API
 
 from __future__ import annotations
 
-from ._base import Publisher
+from . import Publisher
 from influxdb_client_3 import InfluxDBClient3
 from orchidarium import env
 from typing import TYPE_CHECKING

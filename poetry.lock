@@ -260,6 +260,18 @@ async = ["asgiref (>=3.2)"]
 dotenv = ["python-dotenv"]
 
 [[package]]
+name = "hid"
+version = "1.0.8"
+description = "ctypes bindings for hidapi"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "hid-1.0.8-py3-none-any.whl", hash = "sha256:9b6fac92098322ae5d8d839c2bb30620b7533284bcf5f3e6aedcc0483c388046"},
+    {file = "hid-1.0.8.tar.gz", hash = "sha256:5ca129a7b9434ace5e3e429c1092a16792feffaf067a46b666e9c586872cdcfe"},
+]
+
+[[package]]
 name = "identify"
 version = "2.6.15"
 description = "File identification library for Python"
@@ -978,4 +990,4 @@ watchdog = ["watchdog (>=2.3)"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "f29a1e0861d73e7e63bb440e60f3d74ff798a323475f28c037a82519ffa9495f"
+content-hash = "046985137bd12db1bbc02b213ad7fa36db3544e17ac49e0422d6239772071c5f"

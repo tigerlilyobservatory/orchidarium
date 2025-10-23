@@ -18,6 +18,10 @@ LABEL org.opencontainers.image.documentation "https://blog.aperiodicity.com"
 
 USER root
 
+RUN apt update \
+    && apt install -y --no-install-recommends libhidapi-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 ENV TINI_VERSION=${TINI_VERSION}
 # https://github.com/krallin/tini
 RUN curl -sL https://github.com/krallin/tini/releases/download/"${TINI_VERSION}"/tini-"${ARCHITECTURE}" -o /tini \

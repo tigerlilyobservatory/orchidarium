@@ -12,6 +12,7 @@ services:
       - INFLUXDB_TOKEN=orchidarium
       - INFLUXDB_ORG=orchidarium
       - INFLUXDB_DATABASE=orchidarium
+      - HEALTHCHECK_PORT=8085
     deploy:
       resources:
         limits:
