@@ -57,12 +57,16 @@ def daemon() -> int:
                 threads = [
                     pool.submit(
                         partial(
-                            SoilSensor().publish(publisher)
+                            SoilSensor().publish(
+                                publisher
+                            )
                         )
                     ),
                     pool.submit(
                         partial(
-                            HumiditySensor().publish(publisher)
+                            HumiditySensor().publish(
+                                publisher
+                            )
                         )
                     )
                 ]
