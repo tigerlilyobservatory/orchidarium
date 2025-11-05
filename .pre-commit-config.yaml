@@ -12,7 +12,7 @@ repos:
     -   id: hadolint
         args:
         -   --config
-        -   config/.hadolint.yaml
+        -   .config/.hadolint.yaml
         -   Dockerfile
 
 -   repo: https://github.com/pre-commit/pre-commit-hooks
