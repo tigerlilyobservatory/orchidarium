@@ -42,6 +42,7 @@ def daemon() -> int:
                 app.run,
                 port=int(env['HEALTHCHECK_PORT'])
             ),
+            # Do not block upon start().
             daemon=True
         ),
     ]
