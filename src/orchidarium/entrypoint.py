@@ -9,8 +9,10 @@ import logging
 import sys
 import traceback
 
+from setproctitle import setproctitle
 from time import sleep
 from functools import partial
+from threading import Thread
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from orchidarium.publishers.influxdb import InfluxDBPublisher
 from orchidarium.api import app
@@ -29,9 +31,28 @@ def daemon() -> int:
     """
     Daemon loop
     """
+    _ret_code = 0
+
+    setproctitle('orchidarium')
+
+    # Start the healthcheck and other APIs in a separate thread off our main process as a daemon thread.
+    _main_process_daemon_threads = [
+        Thread(
+            target=partial(
+                app.run,
+                port=int(env['HEALTHCHECK_PORT'])
+            ),
+            daemon=True
+        ),
+    ]
+
+    for _dthread in _main_process_daemon_threads:
+        _dthread.start()
+
     try:
         while True:
-            with ThreadPoolExecutor(max_workers=3, thread_name_prefix='orchidarium') as pool, InfluxDBPublisher() as publisher:
+            # Start as many threads as there are sensors.
+            with ThreadPoolExecutor(max_workers=2, thread_name_prefix='orchidarium') as pool, InfluxDBPublisher() as publisher:
                 threads = [
                     pool.submit(
                         partial(
@@ -41,12 +62,6 @@ def daemon() -> int:
                     pool.submit(
                         partial(
                             HumiditySensor().publish(publisher)
-                        )
-                    ),
-                    pool.submit(
-                        partial(
-                            app.run,
-                            port=int(env['HEALTHCHECK_PORT'])
                         )
                     )
                 ]
@@ -74,6 +89,9 @@ def daemon() -> int:
     except Exception as e:
         _ret_code = 1
         log.error(e)
+
+    for thread in _main_process_daemon_threads:
+        thread.join(timeout=5)
 
     return _ret_code
 
