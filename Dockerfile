@@ -14,7 +14,7 @@ ARG TINI_VERSION=0.19.0 \
 LABEL org.opencontainers.image.description "© Emma Doyle 2025"
 LABEL org.opencontainers.image.licenses "GPLv3"
 LABEL org.opencontainers.image.authors "Emma Doyle <emma.ann.doyle@gmail.com>"
-LABEL org.opencontainers.image.documentation "https://blog.aperiodicity.com"
+LABEL org.opencontainers.image.documentation "https://github.com/tigerlilyobservatory/orchidarium"
 
 USER root
 

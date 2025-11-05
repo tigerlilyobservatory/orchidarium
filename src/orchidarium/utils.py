@@ -69,13 +69,13 @@ cache = TTLCache(
 )
 
 
-def cached_read_json(path: str) -> Dict | None:
+def cached_read_json(path: str) -> Dict:
     """
     Same function as 'read_json', the reads from disk are cached for the interval, however.
     """
     try:
         k = cache[path]
-        log.debug(f'')
+        log.debug(f'Cache key hit, using cached value for path "{path}" on disk')
         return k
     except KeyError as e:
         log.debug(f'Cache miss, reading JSON cache "{path}" from disk')
