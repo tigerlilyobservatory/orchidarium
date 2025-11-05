@@ -39,6 +39,7 @@ See the below screenshots from the Grafana dashboard.
 
 ### Setup
 
-The [`compose.yaml`](./compose.yaml) contains the configuration required to get this project started.
-
-Source [`./scripts/.env.sh`](./scripts/.env.sh) to get started with environment variables populated from a Linux pass store.
+1. Copy the [`udev.rules`](./conf/udev.rules) to `/etc/udev/rules.d/orchidarium.rules`.
+2. Plug in USB devices or run `sudo udevadm control --reload-rules` to reload rules.
+3. The [`compose.yaml`](./compose.yaml) contains the configuration required to get this project started.
+4. Source [`./scripts/.env.sh`](./scripts/.env.sh) to get started with environment variables populated from a Linux pass store.
