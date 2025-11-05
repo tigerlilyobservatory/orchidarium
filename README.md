@@ -21,6 +21,10 @@ Current supported sensors by this Python package include a
 
 Here's a [public Amazon list](https://www.amazon.com/hz/wishlist/ls/1ARZ5WK7A2QLO?ref_=wl_share) with most of the hardware I used to get this orchidarium off the ground.
 
+## How it works by example
+
+See the below screenshots from the Grafana dashboard.
+
 ## Local development
 
 ### Setup
