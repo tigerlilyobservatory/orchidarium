@@ -16,7 +16,7 @@ Current supported sensors by this Python package include a
 ## Build
 
 <p align="left" width="100%">
-  <img width="75%" src="./img/orchid.png" alt="build">
+  <img width="75%" src="./img/hex_empty.jpeg" alt="build">
 </p>
 
 I've sourced a lot of components from various sites for this build.
@@ -24,6 +24,12 @@ I've sourced a lot of components from various sites for this build.
 - Here's a [public Amazon list](https://www.amazon.com/hz/wishlist/ls/1ARZ5WK7A2QLO?ref_=wl_share) with most of the hardware I used to get this orchidarium off the ground.
 - I sourced the large cork bark log [from a seller on Etsy](https://www.etsy.com/listing/1855324948/oversize-cork-rounds-cut-to-length?ref=yr_purchases) who specializes in terrariums.
 - Many of the orchids that have been mounted in the terrarium are from ecuagenera, as well as a number of other retail sellers and auctions. Begonias and other terrestrial plants have been sourced from various sellers on Etsy, including [Botanicaz](https://www.etsy.com/shop/Botanicaz?ref=yr_purchases) and [FloraEpiphytica](https://www.etsy.com/shop/FloraEpiphytica?ref=yr_purchases).
+
+This is the second terrarium I've built, following the first (pictured below).
+
+<p align="left" width="100%">
+  <img width="75%" src="./img/first_terrarium.jpeg" alt="first terrarium I built">
+</p>
 
 ## How it works by example
 
