@@ -39,7 +39,7 @@ See the below screenshots from the Grafana dashboard.
 
 ### Setup
 
-1. Copy the [`udev.rules`](./conf/udev.rules) to `/etc/udev/rules.d/orchidarium.rules`.
+1. Copy the [`udev.rules`](./conf/udev.rules) to `/etc/udev/rules.d/orchidarium.rules`. You'll notice I've matched the IDs of the USB devices purchased at the links above to the IDs found via [`lsusb -v`](./refs/lsusb.out).
 2. Plug in USB devices or run `sudo udevadm control --reload-rules` to reload rules.
 3. The [`compose.yaml`](./compose.yaml) contains the configuration required to get this project started.
 4. Source [`./scripts/.env.sh`](./scripts/.env.sh) to get started with environment variables populated from a Linux pass store.
