@@ -24,18 +24,21 @@ services:
     depends_on:
       influxdb:
         condition: service_healthy
+
+    # Provide access to the USB sensors.
     volumes:
       - /dev/bus/usb:/dev/bus/usb:ro
+      # - /dev:/dev:ro
     privileged: true
+    #
+
     healthcheck:
       test: >
         curl -sL http://localhost:8085/health && curl -sL http://localhost:8085/ready
       start_period: 5s
       interval: 60s
       timeout: 5s
-      retries: 3
-    ports:
-      - 8085:8085
+      retries: 10
   grafana:
     container_name: grafana
     image: grafana/grafana:9.5.20
@@ -77,12 +80,11 @@ services:
     depends_on:
       influxdb:
         condition: service_healthy
-      mysql-grafana:
-        condition: service_healthy
     healthcheck:
-      test: curl http://localhost:3000
+      test: >
+        curl -sL http://localhost:3000
       interval: 3s
-      retries: 5
+      retries: 10
       start_period: 5s
       timeout: 5s
   influxdb:
@@ -109,6 +111,6 @@ services:
     healthcheck:
       test: influx ping || exit 1
       interval: 3s
-      retries: 5
+      retries: 10
       start_period: 5s
       timeout: 5s

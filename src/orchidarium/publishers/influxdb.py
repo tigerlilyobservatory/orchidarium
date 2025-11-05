@@ -20,8 +20,12 @@ __all__ = [
 
 
 class InfluxDBPublisher(Publisher):
+    """
+    An interface for managing connections to, as well as submitting data to, an InfluxDB instance.
+    """
+
     def __init__(self):
-        self._client = None
+        self._client: Any = None
 
     def connect(self) -> bool:
         self._client = InfluxDBClient3(
