@@ -29,7 +29,8 @@ RUN curl -sL https://github.com/krallin/tini/releases/download/"${TINI_VERSION}"
 
 # Add 'orchidarium' user and group.
 RUN groupadd orchidarium \
-    && useradd -rm -d /opt/orchidarium -s /bin/bash -g orchidarium -u 10001 orchidarium
+    && useradd -rm -d /opt/orchidarium -s /bin/bash -g orchidarium -u 10001 orchidarium \
+    && mkdir /opt/orchidarium/healthcheck
 
 WORKDIR /opt/orchidarium
 

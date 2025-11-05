@@ -13,6 +13,7 @@ services:
       - INFLUXDB_ORG=orchidarium
       - INFLUXDB_DATABASE=orchidarium
       - HEALTHCHECK_PORT=8085
+      - HEALTHCHECK_CACHE_TTL=60
     deploy:
       resources:
         limits:

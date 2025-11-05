@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+from pathlib import Path
 from abc import abstractmethod, ABC
+from orchidarium.utils import write_json
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -12,6 +14,8 @@ class Sensor(ABC):
 
     def __init__(self, scale: Literal['F', 'C'] = 'F') -> None:
         self.scale = scale
+        self._collection: bool = False
+        self._publication: bool = False
 
     @property
     def temperature(self) -> float:
@@ -37,3 +41,23 @@ class Sensor(ABC):
     @abstractmethod
     def publish(self, publisher: Publisher) -> bool:
         raise NotImplementedError
+
+    def cache(self, file: Path = Path('healthcheck.json')) -> bool:
+        """
+        Write a cache to disk that healthchecks can pick up on to indicate the proper health.
+
+        Args:
+            file (Path): File to cache healthcheck results in.
+
+        Returns:
+            True if caching the result was successful; False otherwise.
+        """
+        write_json(
+            data={
+                "healthcheck": {
+                    "publish": self._publication,
+                    "readout": self._collection
+                }
+            },
+            path=Path(self.__class__.__name__.lower() + '_' + str(file))
+        )

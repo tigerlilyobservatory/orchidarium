@@ -29,6 +29,7 @@ flask = "^3.1.2"
 bitstring = "^4.3.1"
 influxdb3-python = "^0.16.0"
 hid = "^1.0.8"
+cachetools = "^6.2.1"
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^4.3.0"
 mypy = "^1.18.2"

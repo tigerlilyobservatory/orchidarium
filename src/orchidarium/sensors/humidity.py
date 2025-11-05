@@ -5,6 +5,7 @@ import logging
 
 from time import sleep
 from usb.core import find
+from orchidarium import env
 from orchidarium.sensors import Sensor
 from orchidarium.lib.bus import InterfaceClaim, read
 from typing import TYPE_CHECKING
@@ -14,7 +15,6 @@ if TYPE_CHECKING:
 
 
 log = logging.getLogger(__name__)
-
 
 
 class Humidity(Sensor):

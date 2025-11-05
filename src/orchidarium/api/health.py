@@ -6,6 +6,9 @@ Serve a healthcheck endpoint when in daemon mode.
 from http import HTTPStatus
 from flask import Response
 from flask import Flask
+from pathlib import Path
+from orchidarium.utils import cached_read_json
+from orchidarium import env
 
 import logging
 
@@ -33,13 +36,22 @@ def create_healthcheck_api(app: Flask) -> None:
                 "status": "OK"
             }
         """
-        return Response(
-            {
-                'status': 'OK'
-            },
-            status=HTTPStatus.OK,
-            mimetype='application/json'
-        )
+        for sensor_health_result_f in Path(env['HEALTHCHECK_CACHE_PATH']).iterdir():
+            if not cached_read_json(path=sensor_health_result_f)['healthcheck']['readout']:
+                return Response(
+                    {
+                        'status': 'Failed'
+                    },
+                    status=HTTPStatus.SERVICE_UNAVAILABLE
+                )
+        else:
+            return Response(
+                {
+                    'status': 'OK'
+                },
+                status=HTTPStatus.OK,
+                mimetype='application/json'
+            )
 
     @app.get('/ready')
     def readiness() -> Response:
@@ -53,10 +65,19 @@ def create_healthcheck_api(app: Flask) -> None:
                 "status": "OK"
             }
         """
-        return Response(
-            {
-                'status': 'OK'
-            },
-            status=HTTPStatus.OK,
-            mimetype='application/json'
-        )
+        for sensor_health_result_f in Path(env['HEALTHCHECK_CACHE_PATH']).iterdir():
+            if not (_jsn := cached_read_json(path=sensor_health_result_f)['healthcheck']['publish']) and not _jsn['healthcheck']['readout']:
+                return Response(
+                    {
+                        'status': 'Failed'
+                    },
+                    status=HTTPStatus.SERVICE_UNAVAILABLE
+                )
+        else:
+            return Response(
+                {
+                    'status': 'OK'
+                },
+                status=HTTPStatus.OK,
+                mimetype='application/json'
+            )
