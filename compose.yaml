@@ -28,7 +28,8 @@ services:
       - /dev/bus/usb:/dev/bus/usb:ro
     privileged: true
     healthcheck:
-      test: curl http://localhost:8085/healthcheck
+      test: >
+        curl -sL http://localhost:8085/health && curl -sL http://localhost:8085/ready
       start_period: 5s
       interval: 60s
       timeout: 5s
