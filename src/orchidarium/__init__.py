@@ -13,7 +13,7 @@ env: Dict[str, str]  = {
     'INFLUXDB_ORG':           os.getenv('INFLUXDB_ORG',                            'orchidarium'),
     'INFLUXDB_DATABASE':      os.getenv('INFLUXDB_DATABASE',                       'orchidarium'),
     'INTERVAL':               os.getenv('INTERVAL',                                         '60'),
-    'HEALTHCHECK_CACHE_TTL':  os.getenv('HEALTHCHECK_CACHE_TTL',                            '60'),
+    'HEALTHCHECK_CACHE_TTL':  os.getenv('HEALTHCHECK_CACHE_TTL',                            '5'),
     'HEALTHCHECK_CACHE_PATH': os.getenv('HEALTHCHECK_CACHE_PATH', '/opt/orchidarium/healthcheck')
 }
 

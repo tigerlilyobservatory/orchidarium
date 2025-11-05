@@ -35,18 +35,19 @@ class Humidity(Sensor):
             log.error(f'USB device with idVendor "{env["USB_VENDOR_ID"]}" and idProduct "{env["USB_PRODUCT_ID"]}" not found, exiting.')
             return False
 
-        while True:
-            with InterfaceClaim(device, detach=True):
-                _match: re.Pattern = re.compile(r'')
-                _extract_temperature: re.Pattern = re.compile(r'(?<=T: )[0-9]+.[0-9]+(?=,)')
+        with InterfaceClaim(device, detach=True):
+            _match: re.Pattern = re.compile(r'')
+            _extract_temperature: re.Pattern = re.compile(r'(?<=T: )[0-9]+.[0-9]+(?=,)')
 
-                if re.match(_match, (_res := read(device[0][(0,0)][0], device).decode('utf-8', errors='replace'))):
-                    log.info(_res)
-                    temperature = float(re.search(_extract_temperature, _res).group())
-                    log.info(temperature)
-                    return True
-            print(_res)
-            sleep(5)
+            if re.match(_match, (_res := read(device[0][(0,0)][0], device).decode('utf-8', errors='replace'))):
+                log.info(_res)
+                temperature = float(re.search(_extract_temperature, _res).group())
+                log.info(temperature)
+                return True
+
+        self._collection = True
+        self.cache()
+        return True
 
     def publish(self, publisher: Publisher) -> bool:
         ...

@@ -64,8 +64,8 @@ def read_json(path: str) -> Dict | None:
 
 
 cache = TTLCache(
-    maxsize=int(env['HEALTHCHECK_CACHE_TTL']),
-    ttl=int(env['INTERVAL']) - 1
+    maxsize=len(list(Path(env['HEALTHCHECK_CACHE_PATH']).iterdir())),
+    ttl=int(env['HEALTHCHECK_CACHE_TTL'])
 )
 
 
