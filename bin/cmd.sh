@@ -19,5 +19,5 @@ fi
 if [ -n "$(poetry env info -p)" ]; then
     poetry run orchidarium "$@"
 else
-    passoperator "$@"
+    orchidarium "$@"
 fi
