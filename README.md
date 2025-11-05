@@ -18,3 +18,7 @@ A collection of scripts and configuration files for collecting and publishing me
 The [`compose.yaml`](./compose.yaml) contains the configuration required to get this project started.
 
 Source [`./scripts/.env.sh`](./scripts/.env.sh) to get started with environment variables populated from a Linux pass store.
+
+## Parts
+
+Here's a [public Amazon list](https://www.amazon.com/hz/wishlist/ls/1ARZ5WK7A2QLO?ref_=wl_share) with most of the hardware I used to get this orchidarium off the ground.
