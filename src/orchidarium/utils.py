@@ -74,8 +74,11 @@ def cached_read_json(path: str) -> Dict | None:
     Same function as 'read_json', the reads from disk are cached for the interval, however.
     """
     try:
-        return cache[path]
+        k = cache[path]
+        log.debug(f'')
+        return k
     except KeyError as e:
+        log.debug(f'Cache miss, reading JSON cache "{path}" from disk')
         _json = read_json(path)
         cache[path] = _json
         return _json

@@ -16,6 +16,28 @@ import logging
 log = logging.getLogger(__name__)
 
 
+__all__ = [
+    'create_healthcheck_api'
+]
+
+
+_FAILED = Response(
+    {
+        'status': 'Failed'
+    },
+    status=HTTPStatus.SERVICE_UNAVAILABLE,
+    mimetype='application/json'
+)
+
+_OK = Response(
+    {
+        'status': 'OK'
+    },
+    status=HTTPStatus.OK,
+    mimetype='application/json'
+)
+
+
 def create_healthcheck_api(app: Flask) -> None:
     """
     Create a healthcheck API for a Flask app instance.
@@ -38,25 +60,17 @@ def create_healthcheck_api(app: Flask) -> None:
         """
         for sensor_health_result_f in Path(env['HEALTHCHECK_CACHE_PATH']).iterdir():
             if not cached_read_json(path=sensor_health_result_f)['healthcheck']['readout']:
-                return Response(
-                    {
-                        'status': 'Failed'
-                    },
-                    status=HTTPStatus.SERVICE_UNAVAILABLE
-                )
+                return _FAILED
         else:
-            return Response(
-                {
-                    'status': 'OK'
-                },
-                status=HTTPStatus.OK,
-                mimetype='application/json'
-            )
+            if len(list(Path(env['HEALTHCHECK_CACHE_PATH']).iterdir())) != 0:
+                return _OK
+            else:
+                return _FAILED
 
     @app.get('/ready')
     def readiness() -> Response:
         """
-        Quick unauthenticated ready endpoint.
+        Quick unauthenticated readiness endpoint.
 
         Returns:
             Response: an object with schema like
@@ -67,17 +81,9 @@ def create_healthcheck_api(app: Flask) -> None:
         """
         for sensor_health_result_f in Path(env['HEALTHCHECK_CACHE_PATH']).iterdir():
             if not (_jsn := cached_read_json(path=sensor_health_result_f)['healthcheck']['publish']) and not _jsn['healthcheck']['readout']:
-                return Response(
-                    {
-                        'status': 'Failed'
-                    },
-                    status=HTTPStatus.SERVICE_UNAVAILABLE
-                )
+                return _FAILED
         else:
-            return Response(
-                {
-                    'status': 'OK'
-                },
-                status=HTTPStatus.OK,
-                mimetype='application/json'
-            )
+            if len(list(Path(env['HEALTHCHECK_CACHE_PATH']).iterdir())) != 0:
+                return _OK
+            else:
+                return _FAILED
