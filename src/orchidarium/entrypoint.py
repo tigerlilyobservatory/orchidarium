@@ -26,12 +26,12 @@ log = logging.getLogger(__name__)
 
 
 def daemon() -> int:
-    publisher = InfluxDBPublisher()
-    publisher.connect()
-
+    """
+    Daemon loop
+    """
     try:
         while True:
-            with ThreadPoolExecutor(max_workers=3, thread_name_prefix='orchidarium') as pool:
+            with ThreadPoolExecutor(max_workers=3, thread_name_prefix='orchidarium') as pool, InfluxDBPublisher() as publisher:
                 threads = [
                     pool.submit(
                         partial(
@@ -61,9 +61,9 @@ def daemon() -> int:
 
                         for _thread in filtered_threads:
                             if _thread is not thread:
-                                log.debug(f'Terminating process {_thread}')
+                                log.debug(f'Terminating thread "{_thread}"')
                                 _thread.cancel()
-                                log.debug(f'Process {_thread} terminated successfully')
+                                log.debug(f'Thread "{_thread}" terminated successfully')
 
                         _ret_code = 1
                         break
