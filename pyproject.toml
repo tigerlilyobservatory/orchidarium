@@ -48,3 +48,7 @@ orchidarium = "orchidarium.entrypoint:cli"
 python_version = "3.11"
 strict_optional = "true"
 ignore_missing_imports = "true"
+
+[tool.pydoclint]
+style = "google"
+require-return-section-when-returning-nothing = false
