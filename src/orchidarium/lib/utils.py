@@ -3,6 +3,8 @@ Random helpful utility functions.
 """
 
 
+import sys
+
 from functools import lru_cache
 
 
@@ -15,9 +17,11 @@ def sensor_count() -> int:
         int: the number of supported sensors [0-inf).
     """
     import inspect
-    import orchidarium.sensors
 
-    from orchidarium.sensors import Sensor
+    if 'orchidarium.sensors' not in sys.modules:
+        import orchidarium.sensors
+    if 'Sensor' not in sys.modules:
+        from orchidarium.sensors import Sensor
 
     subclasses = []
     for _, obj in inspect.getmembers(orchidarium.sensors, inspect.isclass):

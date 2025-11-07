@@ -8,6 +8,7 @@ from flask import Response
 from flask import Flask
 from pathlib import Path
 from orchidarium.lib.json import cached_read_json
+from orchidarium.lib.utils import sensor_count
 from orchidarium import env
 
 import logging
@@ -58,14 +59,17 @@ def create_healthcheck_api(app: Flask) -> None:
                 "status": "OK"
             }
         """
-        for sensor_health_result_f in Path(env['HEALTHCHECK_CACHE_PATH']).iterdir():
-            if not cached_read_json(path=sensor_health_result_f)['healthcheck']['readout']:
-                return _FAILED
-        else:
-            if len(list(Path(env['HEALTHCHECK_CACHE_PATH']).iterdir())) != 0:
-                return _OK
+        if len(list(Path(env['HEALTHCHECK_CACHE_PATH']).iterdir())) == sensor_count():
+            for sensor_health_result_f in Path(env['HEALTHCHECK_CACHE_PATH']).iterdir():
+                if not cached_read_json(path=sensor_health_result_f)['healthcheck']['readout']:
+                    return _FAILED
             else:
-                return _FAILED
+                if len(list(Path(env['HEALTHCHECK_CACHE_PATH']).iterdir())) != 0:
+                    return _OK
+                else:
+                    return _FAILED
+        else:
+            return _FAILED
 
     @app.get('/ready')
     def readiness() -> Response:
@@ -79,11 +83,14 @@ def create_healthcheck_api(app: Flask) -> None:
                 "status": "OK"
             }
         """
-        for sensor_health_result_f in Path(env['HEALTHCHECK_CACHE_PATH']).iterdir():
-            if not (_jsn := cached_read_json(path=sensor_health_result_f)['healthcheck']['publish']) and not _jsn['healthcheck']['readout']:
-                return _FAILED
-        else:
-            if len(list(Path(env['HEALTHCHECK_CACHE_PATH']).iterdir())) != 0:
-                return _OK
+        if len(list(Path(env['HEALTHCHECK_CACHE_PATH']).iterdir())) == sensor_count():
+            for sensor_health_result_f in Path(env['HEALTHCHECK_CACHE_PATH']).iterdir():
+                if not (_jsn := cached_read_json(path=sensor_health_result_f)['healthcheck']['publish']) and not _jsn['healthcheck']['readout']:
+                    return _FAILED
             else:
-                return _FAILED
+                if len(list(Path(env['HEALTHCHECK_CACHE_PATH']).iterdir())) != 0:
+                    return _OK
+                else:
+                    return _FAILED
+        else:
+            return _FAILED

@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import sys
+
 from pathlib import Path
 from abc import abstractmethod, ABC
-from orchidarium.lib.json import write_json
 from typing import TYPE_CHECKING
+
+if 'orchidarium.lib.json' not in sys.modules:
+    from orchidarium.lib.json import write_json
 
 if TYPE_CHECKING:
     from orchidarium.publishers._base import Publisher
