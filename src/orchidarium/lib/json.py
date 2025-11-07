@@ -13,14 +13,18 @@ if TYPE_CHECKING:
     from typing import Dict
 
 
-log = logging.getLogger(__name__)
-
-
 __all__ = [
     'write_json',
     'read_json',
     'cached_read_json'
 ]
+
+log = logging.getLogger(__name__)
+
+cache: TTLCache = TTLCache(
+    maxsize=inf,
+    ttl=int(env['HEALTHCHECK_CACHE_TTL'])
+)
 
 
 def write_json(data: dict, path: Path | str) -> bool:
@@ -66,13 +70,6 @@ def read_json(path: Path | str) -> Dict:
     except (FileNotFoundError, PermissionError) as msg:
         log.error(f'Failed to read JSON file, received: {msg}')
         return dict()
-
-
-# We instantiate the cache here because
-cache: TTLCache = TTLCache(
-    maxsize=inf,
-    ttl=int(env['HEALTHCHECK_CACHE_TTL'])
-)
 
 
 def cached_read_json(path: Path | str) -> Dict:
