@@ -1,14 +1,11 @@
 from __future__ import annotations
 
-import sys
 import logging
 
 from pathlib import Path
 from abc import abstractmethod, ABC
 from typing import TYPE_CHECKING
-
-if 'orchidarium.lib.json' not in sys.modules:
-    from orchidarium.lib.json import write_json
+from orchidarium.lib.json import write_json
 
 if TYPE_CHECKING:
     from orchidarium.publishers._base import Publisher
@@ -34,6 +31,13 @@ class Sensor(ABC):
 
     @_collection.setter
     def _collection(self, value: bool) -> None:
+        """
+        Track whether or not a sensor has successfully collected its data.
+        This property adds the side-effect of updating the cache on-disk.
+
+        Args:
+            value (bool): value to set the collection indicator to (True or False).
+        """
         self._col = value
         self.cache()
 
@@ -43,6 +47,13 @@ class Sensor(ABC):
 
     @_publication.setter
     def _publication(self, value: bool) -> None:
+        """
+        Track whether or not a sensor has successfully collected its data.
+        This property adds the side-effect of updating the cache on-disk.
+
+        Args:
+            value (bool): value to set the collection indicator to (True or False).
+        """
         self._pub = value
         self.cache()
 
