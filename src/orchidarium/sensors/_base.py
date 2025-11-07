@@ -63,8 +63,6 @@ class Sensor(ABC):
             return self._temperature * 9 / 5 + 32.0
         elif self.scale == 'C':
             return self._temperature
-        else:
-            return self._temperature
 
     @temperature.setter
     def temperature(self, value: float) -> None:

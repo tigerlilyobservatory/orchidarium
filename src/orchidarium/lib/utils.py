@@ -20,7 +20,7 @@ def sensor_count() -> int:
 
     if 'orchidarium.sensors' not in sys.modules:
         import orchidarium.sensors
-    if 'Sensor' not in sys.modules:
+    if 'orchidarium.sensors' not in sys.modules:
         from orchidarium.sensors import Sensor
 
     subclasses = []
