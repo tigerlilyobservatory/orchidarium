@@ -7,7 +7,7 @@ from pathlib import Path
 from abc import abstractmethod, ABC
 from typing import TYPE_CHECKING
 
-if 'orchidarium.lib.json' not in sys.modules:
+if 'write_json' not in sys.modules:
     from orchidarium.lib.json import write_json
 
 if TYPE_CHECKING:

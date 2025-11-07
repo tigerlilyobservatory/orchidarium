@@ -7,8 +7,10 @@ from __future__ import annotations
 
 import logging
 
+from time import sleep
 from . import Publisher
 from influxdb_client import InfluxDBClient, Point
+from influxdb_client.rest import ApiException
 from influxdb_client.client.write_api import SYNCHRONOUS
 from orchidarium import env
 from typing import TYPE_CHECKING
@@ -38,13 +40,22 @@ class InfluxDBPublisher(Publisher):
         log.info(f'Opening connection to InfluxDB host at {env["INFLUXDB_HOST"]}')
 
         if not self._client:
-            self._client = InfluxDBClient(
-                url=env["INFLUXDB_HOST"],
-                org=env['INFLUXDB_ORG'],
-                token=env['INFLUXDB_TOKEN'],
-                database=env['INFLUXDB_DATABASE']
-            )
-            log.info(f'Successfully opened connection to InfluxDB host {env["INFLUXDB_HOST"]}')
+            for i in range(3):
+                try:
+                    self._client = InfluxDBClient(
+                        url=env['INFLUXDB_HOST'],
+                        org=env['INFLUXDB_ORG'],
+                        token=env['INFLUXDB_TOKEN'],
+                        database=env['INFLUXDB_DATABASE']
+                    )
+                    break
+                except ApiException as e:
+                    log.warning(f'Connection attempt {i + 1} / 3 to InfluxDB host "{env["INFLUXDB_HOST"]}" failed: {e}')
+                    sleep(1)
+            else:
+                log.error(f'Could not connect to InfluxDB host "{env["INFLUXDB_HOST"]}" after 3 attempts')
+
+            log.info(f'Successfully opened connection to InfluxDB host "{env["INFLUXDB_HOST"]}"')
         else:
             log.warning(f'Connection to InfluxDB host {env["INFLUXDB_HOST"]} is already open')
 
