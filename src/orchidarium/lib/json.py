@@ -3,8 +3,7 @@ from __future__ import annotations
 import json
 import logging
 
-from orchidarium.lib.utils import sensor_count
-from orchidarium import env
+from orchidarium import env, sensor_count
 from cachetools import TTLCache
 from pathlib import Path
 from typing import TYPE_CHECKING

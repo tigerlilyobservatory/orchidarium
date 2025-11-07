@@ -2,7 +2,11 @@ import logging
 import os
 import sys
 
-from typing import Dict
+from functools import lru_cache
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import Dict
 
 
 log = logging.getLogger(__name__)
@@ -26,3 +30,23 @@ try:
 except ValueError as e:
     log.error(e)
     sys.exit(1)
+
+
+@lru_cache(maxsize=1)
+def sensor_count() -> int:
+    """
+    Return the number of supported sensors.
+
+    Returns:
+        int: the number of supported sensors [0-inf).
+    """
+    import inspect
+
+    if 'orchidarium.sensors' not in sys.modules:
+        import orchidarium.sensors
+
+    subclasses = []
+    for _, obj in inspect.getmembers(orchidarium.sensors, inspect.isclass):
+        if issubclass(obj, orchidarium.sensors.Sensor) and obj is not orchidarium.sensors.Sensor:
+            subclasses.append(obj)
+    return len(subclasses)
