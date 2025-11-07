@@ -20,11 +20,9 @@ def sensor_count() -> int:
 
     if 'orchidarium.sensors' not in sys.modules:
         import orchidarium.sensors
-    if 'orchidarium.sensors' not in sys.modules:
-        from orchidarium.sensors import Sensor
 
     subclasses = []
     for _, obj in inspect.getmembers(orchidarium.sensors, inspect.isclass):
-        if issubclass(obj, Sensor) and obj is not Sensor:
+        if issubclass(obj, orchidarium.sensors.Sensor) and obj is not orchidarium.sensors.Sensor:
             subclasses.append(obj)
     return len(subclasses)
