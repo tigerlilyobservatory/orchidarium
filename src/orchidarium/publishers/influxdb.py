@@ -6,7 +6,8 @@ Provide an InfluxDB Publisher subclass to interact cleanly with the InfluxDB API
 from __future__ import annotations
 
 from . import Publisher
-from influxdb_client_3 import InfluxDBClient
+from influxdb_client import InfluxDBClient, Point
+from influxdb_client.client.write_api import SYNCHRONOUS
 from orchidarium import env
 from typing import TYPE_CHECKING
 
@@ -28,12 +29,14 @@ class InfluxDBPublisher(Publisher):
         self._client: Any = None
 
     def connect(self) -> bool:
-        self._client = InfluxDBClient(
-            host=env['INFLUXDB_HOST'],
-            org=env['INFLUXDB_ORG'],
-            token=env['INFLUXDB_TOKEN'],
-            database=env['INFLUXDB_DATABASE']
-        )
+        # Guard against re-opening the connection.
+        if not self._client:
+            self._client = InfluxDBClient(
+                url=env["INFLUXDB_HOST"],
+                org=env['INFLUXDB_ORG'],
+                token=env['INFLUXDB_TOKEN'],
+                database=env['INFLUXDB_DATABASE']
+            )
 
         return bool(self._client)
 
@@ -41,7 +44,7 @@ class InfluxDBPublisher(Publisher):
         self.connect()
         return self
 
-    def __exit__(self) -> Any:
+    def __exit__(self, *args: Any) -> Any:
         self._client.close()
 
     def publish_datapoint(self, datum: Any) -> bool:
