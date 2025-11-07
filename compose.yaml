@@ -12,8 +12,6 @@ services:
       # Certs
       - ./certs/cert.pem:/etc/grafana/cert.pem:ro
       - ./certs/key.pem:/etc/grafana/key.pem:ro
-      # SQLite data
-      - grafana-data:/var/lib/grafana
       # Config
       - ./grafana/config.ini:/etc/grafana/grafana.ini:ro
     environment:
@@ -38,7 +36,6 @@ services:
       - GF_DATABASE_PASSWORD=$$GRAFANA_MYSQL_DATABASE_PASSWORD
     ports:
       - '0.0.0.0:3000:3000'
-    entrypoint: [ "/run.sh" ]
     restart: unless-stopped
     healthcheck:
       test: >
@@ -153,7 +150,6 @@ services:
     platform: linux/amd64
     privileged: true
 volumes:
-  grafana-data:
   mysql-data:
   influxdb-data:
     # networks:

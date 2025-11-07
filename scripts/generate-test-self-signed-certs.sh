@@ -16,8 +16,8 @@ _generate()
         -sha256 \
         -days 10 \
         -nodes \
-        -subj "/C=US/ST=Massachusetts/L=Chelsea/O=PremiScale/CN=platform/emailAddress=$(git config --global --get user.email)" \
-        -addext "subjectAltName=DNS:platform" # ,DNS:grafana"
+        -subj "/C=US/ST=Georgia/L=Atlanta/O=TigerLilyObservatory/CN=grafana/emailAddress=$(git config --global --get user.email)" \
+        -addext "subjectAltName=DNS:grafana" # ,DNS:grafana"
 }
 
 

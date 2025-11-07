@@ -6,7 +6,7 @@ Provide an InfluxDB Publisher subclass to interact cleanly with the InfluxDB API
 from __future__ import annotations
 
 from . import Publisher
-from influxdb_client_3 import InfluxDBClient3
+from influxdb_client_3 import InfluxDBClient
 from orchidarium import env
 from typing import TYPE_CHECKING
 
@@ -28,7 +28,7 @@ class InfluxDBPublisher(Publisher):
         self._client: Any = None
 
     def connect(self) -> bool:
-        self._client = InfluxDBClient3(
+        self._client = InfluxDBClient(
             host=env['INFLUXDB_HOST'],
             org=env['INFLUXDB_ORG'],
             token=env['INFLUXDB_TOKEN'],
