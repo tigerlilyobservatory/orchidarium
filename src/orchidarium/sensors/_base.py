@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+import logging
 
 from pathlib import Path
 from abc import abstractmethod, ABC
@@ -14,12 +15,16 @@ if TYPE_CHECKING:
     from typing import Literal
 
 
+log = logging.getLogger(__name__)
+
+
 class Sensor(ABC):
 
     def __init__(self, scale: Literal['F', 'C'] = 'F') -> None:
         self.scale = scale
         self._collection: bool = False
         self._publication: bool = False
+        log.info(f'Instantiating thread for sensor "{self.__class__.__name__.lower().removesuffix("sensor")}"')
 
     @property
     def temperature(self) -> float:
