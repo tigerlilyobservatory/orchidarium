@@ -23,12 +23,10 @@ class SoilSensor(Sensor):
 
     def collect(self) -> bool:
         self._collection = False
-        self.cache()
 
         return False
 
     def publish(self, publisher: Publisher) -> bool:
         ...
         self._publication = True
-        self.cache()
         return True

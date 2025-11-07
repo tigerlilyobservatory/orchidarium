@@ -92,14 +92,8 @@ class Sensor(ABC):
         """
         Make Sensors callable, wherein data collection and publication is carried out.
         """
-        if (_collection := self.collect()) and (_publication := self.publish(publisher)):
-            self._collection = _collection
-            self._publication = _publication
-        else:
-            self._collection = False
-            self._publication = False
-
-        self.cache()
+        self.collect()
+        self.publish(publisher)
 
     def cache(self, file: Path = Path('healthcheck.json')) -> bool:
         """
