@@ -34,7 +34,6 @@ class HumiditySensor(Sensor):
             log.error(f'USB device with idVendor "{env["USB_VENDOR_ID"]}" and idProduct "{env["USB_PRODUCT_ID"]}" not found, exiting.')
 
             self._collection = False
-            self.cache()
 
             return False
 
@@ -52,19 +51,16 @@ class HumiditySensor(Sensor):
                     log.info(temperature)
 
                     self._collection = True
-                    self.cache()
 
                     return True
                 else:
                     log.error(f'Could not retrieve temperature')
 
         self._collection = False
-        self.cache()
 
         return False
 
     def publish(self, publisher: Publisher) -> bool:
         ...
         self._publication = True
-        self.cache()
         return True

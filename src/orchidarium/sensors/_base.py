@@ -20,11 +20,31 @@ log = logging.getLogger(__name__)
 
 class Sensor(ABC):
 
-    def __init__(self, scale: Literal['F', 'C'] = 'F') -> None:
+    def __init__(self, scale: Literal['F', 'C'] = 'F', default_temperature: float = 0.0) -> None:
         self.scale = scale
-        self._collection: bool = False
-        self._publication: bool = False
+        self._col: bool = False
+        self._pub: bool = False
+        self._temperature = default_temperature
+        self.cache()
         log.info(f'Instantiating thread for sensor "{self.__class__.__name__.lower().removesuffix("sensor")}"')
+
+    @property
+    def _collection(self) -> bool:
+        return self._col
+
+    @_collection.setter
+    def _collection(self, value: bool) -> None:
+        self._col = value
+        self.cache()
+
+    @property
+    def _publication(self) -> bool:
+        return self._pub
+
+    @_publication.setter
+    def _publication(self, value: bool) -> None:
+        self._pub = value
+        self.cache()
 
     @property
     def temperature(self) -> float:
@@ -75,7 +95,11 @@ class Sensor(ABC):
         if (_collection := self.collect()) and (_publication := self.publish(publisher)):
             self._collection = _collection
             self._publication = _publication
-            self.cache()
+        else:
+            self._collection = False
+            self._publication = False
+
+        self.cache()
 
     def cache(self, file: Path = Path('healthcheck.json')) -> bool:
         """

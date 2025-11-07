@@ -1,7 +1,7 @@
 # Humidity & temperature sensor
-SUBSYSTEM=="usb", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", MODE="0666"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", MODE="0666" SYMLINK+="humidity"
 SUBSYSTEM=="usb_device", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", MODE="0666"
 
 # Soil sensor
-SUBSYSTEM=="usb", ATTRS{idVendor}=="0487", ATTRS{idProduct}=="0007", MODE="0666"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0487", ATTRS{idProduct}=="0007", MODE="0666" SYMLINK+="soil"
 SUBSYSTEM=="usb_device", ATTRS{idVendor}=="0487", ATTRS{idProduct}=="0007", MODE="0666"

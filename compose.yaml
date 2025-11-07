@@ -117,7 +117,8 @@ services:
     # Provide access to the USB sensors.
     volumes:
       - /dev/bus/usb:/dev/bus/usb:ro
-      # - /dev:/dev:ro
+      - /dev/humidity:/dev/humidity:ro
+      - /dev/soil:/dev/soil:ro
       - cache:/opt/orchidarium/healthcheck
     environment:
       - INFLUXDB_HOST=influxdb:8086
@@ -170,9 +171,3 @@ volumes:
       o: "size=10m,uid=10001"
       device: tmpfs
       type: tmpfs
-    # networks:
-    #   local:
-    #     enable_ipv6: false
-    #     driver: bridge
-    #     driver_opts:
-    #       com.docker.network.bridge.host_binding_ipv4: "172.16.0.100"
