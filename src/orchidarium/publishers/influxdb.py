@@ -32,7 +32,6 @@ class InfluxDBPublisher(Publisher):
     """
 
     def __init__(self):
-        super().__init__()
         self._client: Any = None
 
     def connect(self) -> bool:
