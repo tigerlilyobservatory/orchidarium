@@ -33,8 +33,9 @@ services:
       - GF_USERS_VIEWERS_CAN_SAVE_TEMPORARY=true
       - INFLUXDB_USERNAME=$$INFLUXDB_USERNAME
       - INFLUXDB_PASSWORD=$$INFLUXDB_PASSWORD
-      - GRAFANA_DATABASE_USER=$$GRAFANA_MYSQL_DATABASE_USERNAME
-      - GRAFANA_DATABASE_PASSWORD=$$GRAFANA_MYSQL_DATABASE_PASSWORD
+      # Configure Grafana with the same user and password set below.
+      - GF_DATABASE_USER=$$GRAFANA_MYSQL_DATABASE_USERNAME
+      - GF_DATABASE_PASSWORD=$$GRAFANA_MYSQL_DATABASE_PASSWORD
     ports:
       - '0.0.0.0:3000:3000'
     entrypoint: [ "/run.sh" ]
@@ -91,10 +92,10 @@ services:
     volumes:
       - mysql-data:/var/lib/mysql
     environment:
-      MYSQL_ROOT_PASSWORD: $$GRAFANA_MYSQL_DATABASE_PASSWORD
-      MYSQL_DATABASE: orchidarium
-      MYSQL_USER: $$GRAFANA_MYSQL_DATABASE_USERNAME
-      MYSQL_PASSWORD: $$GRAFANA_MYSQL_DATABASE_PASSWORD
+      - MYSQL_ROOT_PASSWORD=$$GRAFANA_MYSQL_DATABASE_PASSWORD
+      - MYSQL_DATABASE=orchidarium
+      - MYSQL_USER=$$GRAFANA_MYSQL_DATABASE_USERNAME
+      - MYSQL_PASSWORD=$$GRAFANA_MYSQL_DATABASE_PASSWORD
     ports:
       - '127.0.0.1:3306:3306'
     restart: unless-stopped
@@ -131,7 +132,8 @@ services:
     #
 
     ports:
-      - '0.0.0.0:8085:8085'
+      # Healthcheck
+      - '127.0.0.1:8085:8085'
     restart: unless-stopped
     healthcheck:
       test: >
@@ -154,3 +156,9 @@ volumes:
   grafana-data:
   mysql-data:
   influxdb-data:
+    # networks:
+    #   local:
+    #     enable_ipv6: false
+    #     driver: bridge
+    #     driver_opts:
+    #       com.docker.network.bridge.host_binding_ipv4: "172.16.0.100"
