@@ -8,6 +8,7 @@ from typing import Dict
 log = logging.getLogger(__name__)
 
 env: Dict[str, str]  = {
+    'DEBUG':                  os.getenv('DEBUG',                                              ''),
     'INFLUXDB_HOST':          os.getenv('INFLUXDB_HOST',                         'influxdb:8086'),
     'INFLUXDB_TOKEN':         os.getenv('INFLUXDB_TOKEN',                                     ''),
     'INFLUXDB_ORG':           os.getenv('INFLUXDB_ORG',                            'orchidarium'),

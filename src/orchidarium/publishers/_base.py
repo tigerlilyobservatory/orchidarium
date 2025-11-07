@@ -21,7 +21,3 @@ class Publisher(ABC):
     @abstractmethod
     def publish_datapoint(self, datum: Any) -> bool:
         raise NotImplementedError
-
-    @abstractmethod
-    def publish_datapoints(self, data: List[Any]) -> bool:
-        raise NotImplementedError

@@ -32,11 +32,41 @@ class Sensor(ABC):
 
     @abstractmethod
     def collect(self) -> bool:
+        """
+        Collect data with the configured sensor.
+
+        Raises:
+            NotImplementedError: due to this being an abstract method.
+
+        Returns:
+            bool: True if the data collection was successful, False otherwise.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def publish(self, publisher: Publisher) -> bool:
+        """
+        Publish data to a Publisher.
+
+        Args:
+            publisher (Publisher): A Publisher that defines a 'publish_datapoint'-method.
+
+        Raises:
+            NotImplementedError: due to this being an abstract method.
+
+        Returns:
+            bool: True if data publication was successful, False otherwise.
+        """
         raise NotImplementedError
+
+    def __call__(self, publisher: Publisher) -> None:
+        """
+        Make Sensors callable, wherein data collection and publication is carried out.
+        """
+        if (_collection := self.collect()) and (_publication := self.publish(publisher)):
+            self._collection = _collection
+            self._publication = _publication
+            self.cache()
 
     def cache(self, file: Path = Path('healthcheck.json')) -> bool:
         """

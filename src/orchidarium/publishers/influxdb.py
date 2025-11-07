@@ -58,15 +58,3 @@ class InfluxDBPublisher(Publisher):
             bool: _description_
         """
         return True
-
-    def publish_datapoints(self, data: List[Any]) -> bool:
-        """
-
-
-        Args:
-            data (List[Any]): _description_
-
-        Returns:
-            bool: _description_
-        """
-        return True

@@ -126,8 +126,7 @@ services:
       - INFLUXDB_DATABASE=orchidarium
       - HEALTHCHECK_PORT=8085
       - HEALTHCHECK_CACHE_TTL=60
-    #
-
+      - DEBUG=true
     ports:
       # Healthcheck
       - '127.0.0.1:8085:8085'

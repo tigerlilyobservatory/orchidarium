@@ -3,7 +3,6 @@ from __future__ import annotations
 import re
 import logging
 
-from time import sleep
 from usb.core import find
 from orchidarium import env
 from orchidarium.sensors import Sensor

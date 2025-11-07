@@ -9,6 +9,7 @@ import logging
 import sys
 import traceback
 
+from typing import TYPE_CHECKING
 from setproctitle import setproctitle
 from time import sleep
 from functools import partial
@@ -20,8 +21,17 @@ from orchidarium.sensors.soil import SoilSensor
 from orchidarium.sensors.humidity import HumiditySensor
 from orchidarium import env
 
+if TYPE_CHECKING:
+    from typing import List
+    from concurrent.futures import Future
+
 
 log = logging.getLogger(__name__)
+logging.basicConfig(
+    stream=sys.stdout,
+    level=logging.DEBUG if env['DEBUG'] != '' else logging.INFO,
+    format='%(asctime)s | %(levelname)s | %(name)s | %(message)s'
+)
 
 
 ## Main
@@ -29,14 +39,17 @@ log = logging.getLogger(__name__)
 
 def daemon() -> int:
     """
-    Daemon loop
+    Daemon loop.
+
+    Returns:
+        int: 0 if successful, 1 or another exit code, otherwise.
     """
     _ret_code = 0
 
     setproctitle('orchidarium')
 
     # Start the healthcheck and other APIs in a separate thread off our main process as a daemon thread.
-    _main_process_daemon_threads = [
+    _main_process_daemon_threads: List[Thread] = [
         Thread(
             target=partial(
                 app.run,
@@ -54,19 +67,18 @@ def daemon() -> int:
         while True:
             # Start as many threads as there are sensors.
             with ThreadPoolExecutor(max_workers=2, thread_name_prefix='orchidarium') as pool, InfluxDBPublisher() as publisher:
-                threads = [
+                # Build a list
+                threads: List[Future] = [
                     pool.submit(
                         partial(
-                            SoilSensor().publish(
-                                publisher
-                            )
+                            SoilSensor(),
+                            publisher
                         )
                     ),
                     pool.submit(
                         partial(
-                            HumiditySensor().publish(
-                                publisher
-                            )
+                            HumiditySensor(),
+                            publisher
                         )
                     )
                 ]
@@ -95,8 +107,8 @@ def daemon() -> int:
         _ret_code = 1
         log.error(e)
 
-    for thread in _main_process_daemon_threads:
-        thread.join(timeout=5)
+    for _dthread in _main_process_daemon_threads:
+        _dthread.join(timeout=5)
 
     return _ret_code
 

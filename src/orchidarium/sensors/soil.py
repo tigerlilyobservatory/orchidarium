@@ -8,8 +8,8 @@ from __future__ import annotations
 import logging
 import re
 
-from time import sleep
 from orchidarium.sensors import Sensor
+from orchidarium.lib.bus import InterfaceClaim, read
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -21,13 +21,14 @@ log = logging.getLogger(__name__)
 
 class SoilSensor(Sensor):
 
-    def collect(self, ) -> bool:
-        """
+    def collect(self) -> bool:
+        self._collection = False
+        self.cache()
 
-
-        Returns:
-            bool: _description_
-        """
+        return False
 
     def publish(self, publisher: Publisher) -> bool:
         ...
+        self._publication = True
+        self.cache()
+        return True
