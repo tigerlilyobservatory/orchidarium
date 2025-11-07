@@ -3,8 +3,7 @@ from __future__ import annotations
 import json
 import logging
 
-from orchidarium import env, sensor_count
-from cachetools import TTLCache
+from orchidarium import cache
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -19,11 +18,6 @@ __all__ = [
 ]
 
 log = logging.getLogger(__name__)
-
-cache: TTLCache = TTLCache(
-    maxsize=sensor_count(),
-    ttl=int(env['HEALTHCHECK_CACHE_TTL'])
-)
 
 
 def write_json(data: dict, path: Path | str) -> bool:

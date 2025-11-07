@@ -3,6 +3,7 @@ import os
 import sys
 
 from functools import lru_cache
+from cachetools import TTLCache
 from typing import Dict
 
 
@@ -47,3 +48,9 @@ def sensor_count() -> int:
         if issubclass(obj, orchidarium.sensors.Sensor) and obj is not orchidarium.sensors.Sensor:
             subclasses.append(obj)
     return len(subclasses)
+
+
+cache: TTLCache = TTLCache(
+    maxsize=sensor_count(),
+    ttl=int(env['HEALTHCHECK_CACHE_TTL'])
+)
