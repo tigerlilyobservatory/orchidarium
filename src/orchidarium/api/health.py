@@ -7,7 +7,7 @@ from http import HTTPStatus
 from flask import Response
 from flask import Flask
 from pathlib import Path
-from orchidarium.utils import cached_read_json
+from orchidarium.lib.json import cached_read_json
 from orchidarium import env
 
 import logging

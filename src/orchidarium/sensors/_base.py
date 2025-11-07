@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from abc import abstractmethod, ABC
-from orchidarium.utils import write_json
+from orchidarium.lib.json import write_json
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
