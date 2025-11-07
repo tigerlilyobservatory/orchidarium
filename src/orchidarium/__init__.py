@@ -3,10 +3,7 @@ import os
 import sys
 
 from functools import lru_cache
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from typing import Dict
+from typing import Dict
 
 
 log = logging.getLogger(__name__)
