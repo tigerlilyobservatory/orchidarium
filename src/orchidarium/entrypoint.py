@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 from setproctitle import setproctitle
 from time import sleep
 from functools import partial
+from cachetools import TTLCache
 from threading import Thread
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from orchidarium.publishers.influxdb import InfluxDBPublisher
@@ -30,6 +31,11 @@ logging.basicConfig(
     stream=sys.stdout,
     level=logging.DEBUG if env['DEBUG'] != '' else logging.INFO,
     format='%(asctime)s | %(levelname)s | %(name)s | %(message)s'
+)
+
+cache: TTLCache = TTLCache(
+    maxsize=sensor_count(),
+    ttl=int(env['HEALTHCHECK_CACHE_TTL'])
 )
 
 

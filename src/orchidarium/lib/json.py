@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 
-from orchidarium import cache
+from orchidarium.entrypoint import cache
 from pathlib import Path
 from typing import TYPE_CHECKING
 

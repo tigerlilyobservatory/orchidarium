@@ -48,9 +48,3 @@ def sensor_count() -> int:
         if issubclass(obj, orchidarium.sensors.Sensor) and obj is not orchidarium.sensors.Sensor:
             subclasses.append(obj)
     return len(subclasses)
-
-
-cache: TTLCache = TTLCache(
-    maxsize=sensor_count(),
-    ttl=int(env['HEALTHCHECK_CACHE_TTL'])
-)
