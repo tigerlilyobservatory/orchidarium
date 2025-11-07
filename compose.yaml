@@ -1,3 +1,4 @@
+name: orchidarium
 services:
   grafana:
     image: grafana/grafana:9.5.20
