@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 
-from math import inf
+from orchidarium.lib.utils import sensor_count
 from orchidarium import env
 from cachetools import TTLCache
 from pathlib import Path
@@ -22,7 +22,7 @@ __all__ = [
 log = logging.getLogger(__name__)
 
 cache: TTLCache = TTLCache(
-    maxsize=inf,
+    maxsize=sensor_count(),
     ttl=int(env['HEALTHCHECK_CACHE_TTL'])
 )
 
