@@ -1,50 +1,18 @@
 services:
-  orchidarium:
-    container_name: orchidarium
-    platform: linux/amd64
-    build:
-      context: .
-      dockerfile: ./Dockerfile
-      target: develop
-      pull: true
-    environment:
-      - INFLUXDB_HOST=influxdb:8086
-      - INFLUXDB_TOKEN=$$INFLUXDB_TOKEN
-      - INFLUXDB_ORG=orchidarium
-      - INFLUXDB_DATABASE=orchidarium
-      - HEALTHCHECK_PORT=8085
-      - HEALTHCHECK_CACHE_TTL=60
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 1G
-        reservations:
-          cpus: '1.0'
-          memory: 1G
+  grafana:
+    image: grafana/grafana:9.5.20
+    container_name: grafana
     depends_on:
       influxdb:
         condition: service_healthy
-
-    # Provide access to the USB sensors.
     volumes:
-      - /dev/bus/usb:/dev/bus/usb:ro
-      # - /dev:/dev:ro
-    privileged: true
-    #
-
-    healthcheck:
-      test: >
-        curl -sL http://localhost:8085/health && curl -sL http://localhost:8085/ready
-      start_period: 5s
-      interval: 5s
-      timeout: 5s
-      retries: 10
-  grafana:
-    container_name: grafana
-    image: grafana/grafana:9.5.20
-    user: '0'
-    restart: unless-stopped
+      # Certs
+      - ./certs/cert.pem:/etc/grafana/cert.pem:ro
+      - ./certs/key.pem:/etc/grafana/key.pem:ro
+      # SQLite data
+      - grafana-data:/var/lib/grafana
+      # Config
+      - ./grafana/config.ini:/etc/grafana/grafana.ini:ro
     environment:
       - TERM=linux
       - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-polystat-panel
@@ -61,15 +29,16 @@ services:
       - GF_USERS_VIEWERS_CAN_SAVE_DASHBOARDS=true
       - GF_USERS_VIEWERS_CAN_SAVE_TEMPORARY=true
     ports:
-      - 3000:3000
-    volumes:
-      # Certs
-      - ./certs/cert.pem:/etc/grafana/cert.pem:ro
-      - ./certs/key.pem:/etc/grafana/key.pem:ro
-      # SQLite data
-      - grafana-data:/var/lib/grafana
-      # Config
-      - ./config/grafana/config.ini:/etc/grafana/grafana.ini:ro
+      - '0.0.0.0:3000:3000'
+    restart: unless-stopped
+    healthcheck:
+      test: >
+        curl -sL http://localhost:3000
+      interval: 3s
+      retries: 10
+      start_period: 5s
+      timeout: 5s
+    user: '0'
     deploy:
       resources:
         limits:
@@ -78,19 +47,9 @@ services:
         reservations:
           cpus: '0.25'
           memory: 1G
-    depends_on:
-      influxdb:
-        condition: service_healthy
-    healthcheck:
-      test: >
-        curl -sL http://localhost:3000
-      interval: 3s
-      retries: 10
-      start_period: 5s
-      timeout: 5s
   influxdb:
-    container_name: influxdb
     image: influxdb:2.7.6
+    container_name: influxdb
     environment:
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=$$INFLUXDB_TOKEN
       #- DOCKER_INFLUXDB_INIT_RETENTION=1w
@@ -100,7 +59,13 @@ services:
       - DOCKER_INFLUXDB_INIT_ORG=orchidarium
       - DOCKER_INFLUXDB_INIT_BUCKET=orchidarium
     ports:
-      - 8086:8086
+      - '0.0.0.0:8086:8086'
+    healthcheck:
+      test: influx ping || exit 1
+      interval: 3s
+      retries: 10
+      start_period: 5s
+      timeout: 5s
     deploy:
       resources:
         limits:
@@ -109,9 +74,46 @@ services:
         reservations:
           cpus: '0.25'
           memory: 1G
+  orchidarium:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: develop
+      pull: true
+    container_name: orchidarium
+    depends_on:
+      influxdb:
+        condition: service_healthy
+
+    # Provide access to the USB sensors.
+    volumes:
+      - /dev/bus/usb:/dev/bus/usb:ro
+      # - /dev:/dev:ro
+    environment:
+      - INFLUXDB_HOST=influxdb:8086
+      - INFLUXDB_TOKEN=$$INFLUXDB_TOKEN
+      - INFLUXDB_ORG=orchidarium
+      - INFLUXDB_DATABASE=orchidarium
+      - HEALTHCHECK_PORT=8085
+      - HEALTHCHECK_CACHE_TTL=60
+    #
+
     healthcheck:
-      test: influx ping || exit 1
-      interval: 3s
-      retries: 10
+      test: >
+        curl -sL http://localhost:8085/health && curl -sL http://localhost:8085/ready
       start_period: 5s
+      interval: 5s
       timeout: 5s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
+    platform: linux/amd64
+    privileged: true
+volumes:
+  grafana-data:

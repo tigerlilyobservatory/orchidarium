@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 import logging
 
 from orchidarium import env
@@ -23,62 +22,67 @@ __all__ = [
 ]
 
 
-def write_json(data: dict, path: str) -> None:
+def write_json(data: dict, path: Path | str) -> bool:
     """
     Write a dictionary to a JSON file.
 
     Args:
         data (dict): the dictionary to write.
-        path (str): the path to write the file to.
-    """
-    path_e = os.path.expandvars(path)
+        path (Path | str): the path to write the file to.
 
+    Returns:
+        bool: True if successful, False otherwise.
+    """
     try:
-        with open(path_e, 'w', encoding='utf-8') as f:
-            log.debug(f'Writing JSON to file: {path_e}')
+        with open(path, 'w', encoding='utf-8') as f:
+            log.debug(f'Writing JSON to file: {path}')
             json.dump(data, f)
+            return True
     except (FileNotFoundError, PermissionError) as msg:
         log.error(f'Failed to write JSON file, received: {msg}')
     except OSError as msg:
-        log.error(f'Failed to write JSON file {path_e}, received: {msg}. Check your path and permissions')
+        log.error(f'Failed to write JSON file {path}, received: {msg}. Check your path and permissions')
+
+    return False
 
 
-def read_json(path: str) -> Dict | None:
+def read_json(path: Path | str) -> Dict:
     """
     Read a JSON file and return the data as a dictionary.
 
     Args:
-        path (str): the path to the JSON file.
+        path (Path | str): the path to the JSON file.
 
     Returns:
-        dict | None: the data from the JSON file, or None if the file does not exist.
+        Dict: the data from the JSON file, or None if the file does not exist.
     """
     try:
         if Path(path).exists():
             with open(path, 'r', encoding='utf-8') as f:
                 return json.load(f)
-        return None
+        else:
+            return dict()
     except (FileNotFoundError, PermissionError) as msg:
         log.error(f'Failed to read JSON file, received: {msg}')
-        return None
+        return dict()
 
 
-cache = TTLCache(
+cache: TTLCache = TTLCache(
     maxsize=len(list(Path(env['HEALTHCHECK_CACHE_PATH']).iterdir())),
     ttl=int(env['HEALTHCHECK_CACHE_TTL'])
 )
 
 
-def cached_read_json(path: str) -> Dict:
+def cached_read_json(path: Path | str) -> Dict:
     """
     Same function as 'read_json', the reads from disk are cached for the interval, however.
     """
     try:
-        k = cache[path]
+        k = cache[str(path)]
         log.debug(f'Cache key hit, using cached value for path "{path}" on disk')
         return k
-    except KeyError as e:
+    except KeyError:
         log.debug(f'Cache miss, reading JSON cache "{path}" from disk')
         _json = read_json(path)
-        cache[path] = _json
+        cache[str(path)] = _json
         return _json

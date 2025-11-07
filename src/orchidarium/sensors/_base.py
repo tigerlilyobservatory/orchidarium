@@ -19,20 +19,16 @@ class Sensor(ABC):
 
     @property
     def temperature(self) -> float:
-        return self._temperature
-
-    @temperature.setter
-    def _(self, value: float) -> None:
-        self._temperature = value
-
-    @temperature.getter
-    def _(self) -> float:
         if self.scale == 'F':
             return self._temperature * 9 / 5 + 32.0
         elif self.scale == 'C':
             return self._temperature
         else:
             return self._temperature
+
+    @temperature.setter
+    def temperature(self, value: float) -> None:
+        self._temperature = value
 
     @abstractmethod
     def collect(self) -> bool:
@@ -47,12 +43,12 @@ class Sensor(ABC):
         Write a cache to disk that healthchecks can pick up on to indicate the proper health.
 
         Args:
-            file (Path): File to cache healthcheck results in.
+            file (Path): File to cache healthcheck results in. (default: Path('healthcheck.json'))
 
         Returns:
-            True if caching the result was successful; False otherwise.
+            bool: True if caching the result was successful; False otherwise.
         """
-        write_json(
+        return write_json(
             data={
                 "healthcheck": {
                     "publish": self._publication,

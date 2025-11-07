@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
-class Humidity(Sensor):
+class HumiditySensor(Sensor):
 
     def collect(self) -> bool:
         device = find(
@@ -45,13 +45,19 @@ class Humidity(Sensor):
 
             if re.match(_match, (_res := read(device[0][(0,0)][0], device).decode('utf-8', errors='replace'))):
                 log.info(_res)
-                temperature = float(re.search(_extract_temperature, _res).group())
-                log.info(temperature)
 
-                self._collection = True
-                self.cache()
+                _search = re.search(_extract_temperature, _res)
 
-                return True
+                if _search:
+                    temperature = float(_search.group(0))
+                    log.info(temperature)
+
+                    self._collection = True
+                    self.cache()
+
+                    return True
+                else:
+                    log.error(f'Could not retrieve temperature')
 
         self._collection = False
         self.cache()

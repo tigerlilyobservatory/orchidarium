@@ -11,7 +11,7 @@ from orchidarium import env
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from typing import Any
+    from typing import Any, List
 
 
 __all__ = [
@@ -39,6 +39,31 @@ class InfluxDBPublisher(Publisher):
 
     def __enter__(self) -> InfluxDBPublisher:
         self.connect()
+        return self
 
     def __exit__(self) -> Any:
         self._client.close()
+
+    def publish_datapoint(self, datum: Any) -> bool:
+        """
+
+
+        Args:
+            datum (Any): _description_
+
+        Returns:
+            bool: _description_
+        """
+        return True
+
+    def publish_datapoints(self, data: List[Any]) -> bool:
+        """
+
+
+        Args:
+            data (List[Any]): _description_
+
+        Returns:
+            bool: _description_
+        """
+        return True
