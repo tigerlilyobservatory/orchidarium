@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 
+from math import inf
 from orchidarium import env
 from cachetools import TTLCache
 from pathlib import Path
@@ -67,8 +68,9 @@ def read_json(path: Path | str) -> Dict:
         return dict()
 
 
+# We instantiate the cache here because
 cache: TTLCache = TTLCache(
-    maxsize=len(list(Path(env['HEALTHCHECK_CACHE_PATH']).iterdir())),
+    maxsize=inf,
     ttl=int(env['HEALTHCHECK_CACHE_TTL'])
 )
 
