@@ -41,23 +41,23 @@ class HumiditySensor(Sensor):
             _match: re.Pattern = re.compile(r'')
             _extract_temperature: re.Pattern = re.compile(r'(?<=T: )[0-9]+.[0-9]+(?=,)')
 
-            if re.match(_match, (_res := read(device[0][(0,0)][0], device).decode('utf-8', errors='replace'))):
-                log.info(_res)
+            for _ in range(10):
+                if re.match(_match, (_res := read(device[0][(0,0)][0], device).decode('utf-8', errors='replace'))):
+                    log.info(_res)
 
-                _search = re.search(_extract_temperature, _res)
+                    _search = re.search(_extract_temperature, _res)
 
-                if _search:
-                    temperature = float(_search.group(0))
-                    log.info(temperature)
+                    if _search:
+                        temperature = float(_search.group(0))
+                        log.info(temperature)
 
-                    self._collection = True
-
-                    return True
-                else:
-                    log.error(f'Could not retrieve temperature')
+                        self._collection = True
+                        return True
+                    else:
+                        log.error(f'Could not retrieve temperature reading.')
+                    break
 
         self._collection = False
-
         return False
 
     def publish(self, publisher: Publisher) -> bool:

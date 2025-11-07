@@ -32,12 +32,12 @@ class InfluxDBPublisher(Publisher):
     """
 
     def __init__(self):
-        log.info(f'Instantiated ')
+        super().__init__()
         self._client: Any = None
 
     def connect(self) -> bool:
         # Guard against re-opening the connection.
-        log.info(f'Opening connection to InfluxDB host at {env["INFLUXDB_HOST"]}')
+        log.info(f'Opening connection to InfluxDB host at "{env["INFLUXDB_HOST"]}"')
 
         if not self._client:
             for i in range(3):
