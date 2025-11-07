@@ -16,3 +16,9 @@ export GF_ADMIN_PASSWORD
 
 GF_ADMIN_USER="$(pass show personal/orchidarium/grafana/username)"
 export GF_ADMIN_USER
+
+GRAFANA_MYSQL_DATABASE_USERNAME="$(pass show personal/orchidarium/mysql/username)"
+export GRAFANA_MYSQL_DATABASE_USERNAME
+
+GRAFANA_MYSQL_DATABASE_PASSWORD="$(pass show personal/orchidarium/mysql/password)"
+export GRAFANA_MYSQL_DATABASE_PASSWORD

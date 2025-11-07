@@ -5,6 +5,8 @@ services:
     container_name: grafana
     depends_on:
       influxdb:
+        condition: service_started
+      mysql:
         condition: service_healthy
     volumes:
       # Certs
@@ -29,8 +31,13 @@ services:
       - GF_USERS_VIEWERS_CAN_EDIT=true
       - GF_USERS_VIEWERS_CAN_SAVE_DASHBOARDS=true
       - GF_USERS_VIEWERS_CAN_SAVE_TEMPORARY=true
+      - INFLUXDB_USERNAME=$$INFLUXDB_USERNAME
+      - INFLUXDB_PASSWORD=$$INFLUXDB_PASSWORD
+      - GRAFANA_DATABASE_USER=$$GRAFANA_MYSQL_DATABASE_USERNAME
+      - GRAFANA_DATABASE_PASSWORD=$$GRAFANA_MYSQL_DATABASE_PASSWORD
     ports:
       - '0.0.0.0:3000:3000'
+    entrypoint: [ "/run.sh" ]
     restart: unless-stopped
     healthcheck:
       test: >
@@ -51,6 +58,8 @@ services:
   influxdb:
     image: influxdb:2.7.6
     container_name: influxdb
+    volumes:
+      - influxdb-data:/data
     environment:
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=$$INFLUXDB_TOKEN
       #- DOCKER_INFLUXDB_INIT_RETENTION=1w
@@ -60,7 +69,8 @@ services:
       - DOCKER_INFLUXDB_INIT_ORG=orchidarium
       - DOCKER_INFLUXDB_INIT_BUCKET=orchidarium
     ports:
-      - '0.0.0.0:8086:8086'
+      - '127.0.0.1:8086:8086'
+    restart: unless-stopped
     healthcheck:
       test: influx ping || exit 1
       interval: 3s
@@ -75,6 +85,25 @@ services:
         reservations:
           cpus: '0.25'
           memory: 1G
+  mysql:
+    image: mysql:9.5
+    container_name: mysql
+    volumes:
+      - mysql-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: $$GRAFANA_MYSQL_DATABASE_PASSWORD
+      MYSQL_DATABASE: orchidarium
+      MYSQL_USER: $$GRAFANA_MYSQL_DATABASE_USERNAME
+      MYSQL_PASSWORD: $$GRAFANA_MYSQL_DATABASE_PASSWORD
+    ports:
+      - '127.0.0.1:3306:3306'
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 60s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
   orchidarium:
     build:
       context: .
@@ -83,6 +112,8 @@ services:
       pull: true
     container_name: orchidarium
     depends_on:
+      grafana:
+        condition: service_started
       influxdb:
         condition: service_healthy
 
@@ -99,6 +130,9 @@ services:
       - HEALTHCHECK_CACHE_TTL=60
     #
 
+    ports:
+      - '0.0.0.0:8085:8085'
+    restart: unless-stopped
     healthcheck:
       test: >
         curl -sL http://localhost:8085/health && curl -sL http://localhost:8085/ready
@@ -118,3 +152,5 @@ services:
     privileged: true
 volumes:
   grafana-data:
+  mysql-data:
+  influxdb-data:

@@ -24,7 +24,7 @@ RUN apt update \
 
 ENV TINI_VERSION=${TINI_VERSION}
 # https://github.com/krallin/tini
-RUN curl -sL https://github.com/krallin/tini/releases/download/"${TINI_VERSION}"/tini-"${ARCHITECTURE}" -o /tini \
+RUN curl -sL https://github.com/krallin/tini/releases/download/v"${TINI_VERSION}"/tini-"${ARCHITECTURE}" -o /tini \
     && chmod +x /tini
 
 # Add 'orchidarium' user and group.
