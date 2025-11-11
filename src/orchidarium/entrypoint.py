@@ -17,8 +17,7 @@ from threading import Thread
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from orchidarium.publishers.influxdb import InfluxDBPublisher
 from orchidarium.api import app
-from orchidarium.sensors import SoilSensor, HumiditySensor
-from orchidarium.support import sensor_count
+from orchidarium.support import sensor_count, sensor_generator
 from orchidarium import env
 
 if TYPE_CHECKING:
@@ -68,20 +67,17 @@ def daemon() -> int:
             # Start as many threads as there are sensors.
             with ThreadPoolExecutor(max_workers=sensor_count(), thread_name_prefix='orchidarium') as pool, InfluxDBPublisher() as publisher:
                 # Build a list of thread futures.
-                threads: List[Future] = [
-                    pool.submit(
-                        partial(
-                            SoilSensor(),
-                            publisher
-                        )
-                    ),
-                    pool.submit(
-                        partial(
-                            HumiditySensor(),
-                            publisher
+                threads: List[Future] = []
+
+                for sensor in sensor_generator():
+                    threads.append(
+                        pool.submit(
+                            partial(
+                                sensor(),
+                                publisher
+                            )
                         )
                     )
-                ]
 
                 filtered_threads = [thread for thread in threads if thread is not None]
 

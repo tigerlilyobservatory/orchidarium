@@ -31,18 +31,23 @@ class HumiditySensor(Sensor):
         )
 
         if device is None:
+            # Exit early if the USB device is not available.
             log.error(f'USB device with idVendor "{env["USB_VENDOR_ID"]}" and idProduct "{env["USB_PRODUCT_ID"]}" not found, exiting.')
 
             self._collection = False
 
             return False
+        else:
+            log.debug(f'Successfully located humidity device:\n\n{device}\n')
 
         with InterfaceClaim(device, detach=True):
             _match: re.Pattern = re.compile(r'')
             _extract_temperature: re.Pattern = re.compile(r'(?<=T: )[0-9]+.[0-9]+(?=,)')
 
-            for _ in range(10):
-                if re.match(_match, (_res := read(device[0][(0,0)][0], device).decode('utf-8', errors='replace'))):
+            for i in range(10):
+                _res = read(device[0][(0,0)][0], device).decode('utf-8', errors='replace')
+                log.debug(f'Raw sensor read {i + 1} / 10: {_res}')
+                if re.match(_match, _res):
                     log.info(_res)
 
                     _search = re.search(_extract_temperature, _res)
