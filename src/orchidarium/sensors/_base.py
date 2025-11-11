@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import logging
+import os
 
 from pathlib import Path
 from abc import abstractmethod, ABC
 from typing import TYPE_CHECKING
 from orchidarium.lib.json import write_json
+from orchidarium import env
 
 if TYPE_CHECKING:
     from orchidarium.publishers._base import Publisher
@@ -121,5 +123,5 @@ class Sensor(ABC):
                     "readout": self._collection
                 }
             },
-            path=Path(self.__class__.__name__.lower() + '_' + str(file))
+            path=Path(os.path.join(env['HEALTHCHECK_CACHE_PATH'], self.__class__.__name__.lower() + '_' + str(file)))
         )

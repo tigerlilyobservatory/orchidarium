@@ -1,8 +1,8 @@
 import orchidarium.sensors
 
 from functools import lru_cache
-from cachetools import TTLCache
-from orchidarium import env
+# from cachetools import TTLCache
+# from orchidarium import env
 
 
 @lru_cache(maxsize=1)
@@ -22,7 +22,7 @@ def sensor_count() -> int:
     return len(subclasses)
 
 
-cache: TTLCache = TTLCache(
-    maxsize=sensor_count(),
-    ttl=int(env['HEALTHCHECK_CACHE_TTL'])
-)
+# cache: TTLCache = TTLCache(
+#     maxsize=sensor_count(),
+#     ttl=int(env['HEALTHCHECK_CACHE_TTL'])
+# )

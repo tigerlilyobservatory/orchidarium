@@ -85,7 +85,7 @@ def create_healthcheck_api(app: Flask) -> None:
         """
         if len(list(Path(env['HEALTHCHECK_CACHE_PATH']).iterdir())) == sensor_count():
             for sensor_health_result_f in Path(env['HEALTHCHECK_CACHE_PATH']).iterdir():
-                if not (_jsn := read_json(path=sensor_health_result_f)['healthcheck']['publish']) and not _jsn['healthcheck']['readout']:
+                if not ((_jsn := read_json(path=sensor_health_result_f))['healthcheck']['publish']) and not _jsn['healthcheck']['readout']:
                     return _FAILED
             else:
                 if len(list(Path(env['HEALTHCHECK_CACHE_PATH']).iterdir())) != 0:
