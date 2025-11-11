@@ -122,10 +122,14 @@ def read(endpoint: Any, device: Any) -> bytes:
     Returns:
         bytes: _description_
     """
-    return communicate(
+    msg = communicate(
         partial(
             device.read,
             endpoint.bEndpointAddress,
             endpoint.wMaxPacketSize,
         )
     ).tobytes()
+
+    log.debug(f'Message read from bus: "{msg.decode()}"')
+
+    return msg
