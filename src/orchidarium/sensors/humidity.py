@@ -18,6 +18,9 @@ log = logging.getLogger(__name__)
 
 class HumiditySensor(Sensor):
 
+    _TEMPERATURE_FAHRENHEIT: float = 0.0
+    _HUMIDITY: float = 0.0
+
     def collect(self) -> bool:
         device = find(
             idVendor=int(
@@ -42,23 +45,27 @@ class HumiditySensor(Sensor):
 
         with InterfaceClaim(device, detach=True):
             _match: re.Pattern = re.compile(r'T: [0-9]+.[0-9]+, RH: [0-9]+.[0-9]+')
-            _extract_temperature: re.Pattern = re.compile(r'(?<=T: )[0-9]+.[0-9]+(?=,)')
+            _extract_temperature: re.Pattern = re.compile(r'(?<=T: )[0-9]+.?[0-9]*(?=,)')
+            _extract_humidity: re.Pattern = re.compile(r'(?<=, RH: )[0-9+.?[0-9]*')
 
             for i in range(10):
                 _res = read(device[0][(0,0)][0], device).decode('utf-8', errors='replace')
                 log.debug(f'Raw sensor read {i + 1} / 10: {_res}')
                 if re.match(_match, _res):
 
-                    _search = re.search(_extract_temperature, _res)
+                    _search_temperature = re.search(_extract_temperature, _res)
+                    _search_humidity = re.search(_extract_humidity, _res)
 
-                    if _search:
-                        temperature = float(_search.group(0))
-                        log.info(temperature)
+                    if _search_temperature and _search_humidity:
+                        self._TEMPERATURE_FAHRENHEIT = float(_search_temperature.group(0))
+                        self._HUMIDITY = float(_search_humidity.group(0))
+
+                        log.debug(f'Collected temperature (F): {self._TEMPERATURE_FAHRENHEIT}. Collected (relative) humidity value: {self._HUMIDITY}')
 
                         self._collection = True
                         return True
                     else:
-                        log.error(f'Could not retrieve temperature reading.')
+                        log.error(f'Could not retrieve temperature or humidity reading.')
                     break
 
         self._collection = False
