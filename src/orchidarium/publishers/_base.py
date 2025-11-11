@@ -9,7 +9,7 @@ from abc import abstractmethod, ABC
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from typing import Any, List
+    from typing import Any
 
 
 class Publisher(ABC):
@@ -19,5 +19,5 @@ class Publisher(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def publish_datapoint(self, datum: Any) -> bool:
+    def submit(self, datum: Any) -> bool:
         raise NotImplementedError

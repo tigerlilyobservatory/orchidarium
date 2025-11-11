@@ -41,14 +41,13 @@ class HumiditySensor(Sensor):
             log.debug(f'Successfully located humidity device:\n\n{device}\n')
 
         with InterfaceClaim(device, detach=True):
-            _match: re.Pattern = re.compile(r'')
+            _match: re.Pattern = re.compile(r'T: [0-9]+.[0-9]+, RH: [0-9]+.[0-9]+')
             _extract_temperature: re.Pattern = re.compile(r'(?<=T: )[0-9]+.[0-9]+(?=,)')
 
             for i in range(10):
                 _res = read(device[0][(0,0)][0], device).decode('utf-8', errors='replace')
                 log.debug(f'Raw sensor read {i + 1} / 10: {_res}')
                 if re.match(_match, _res):
-                    log.info(_res)
 
                     _search = re.search(_extract_temperature, _res)
 

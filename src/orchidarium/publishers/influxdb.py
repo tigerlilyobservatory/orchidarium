@@ -67,7 +67,7 @@ class InfluxDBPublisher(Publisher):
     def __exit__(self, *args: Any) -> Any:
         self._client.close()
 
-    def publish_datapoint(self, datum: Any) -> bool:
+    def submit(self, datum: Any) -> bool:
         """
 
 
