@@ -130,7 +130,7 @@ services:
       - INFLUXDB_ORG=orchidarium
       - INFLUXDB_DATABASE=orchidarium
       - HEALTHCHECK_PORT=8085
-      - HEALTHCHECK_CACHE_TTL=60
+      # - HEALTHCHECK_CACHE_TTL=60
       - HEALTHCHECK_CACHE_PATH=/opt/orchidarium/healthcheck
       - DEBUG=true
     ports:

@@ -52,7 +52,9 @@ def daemon() -> int:
         Thread(
             target=partial(
                 app.run,
-                port=int(env['HEALTHCHECK_PORT'])
+                port=int(env['HEALTHCHECK_PORT']),
+                debug=bool(env['DEBUG']),
+                use_reloader=False
             ),
             # Do not block upon start().
             daemon=True,
@@ -67,7 +69,7 @@ def daemon() -> int:
     try:
         while True:
             # Start as many threads as there are sensors.
-            with ThreadPoolExecutor(max_workers=sensor_count(), thread_name_prefix='orchidarium') as pool, InfluxDBPublisher() as publisher:
+            with ThreadPoolExecutor(max_workers=sensor_count(), thread_name_prefix='sensor') as pool, InfluxDBPublisher() as publisher:
                 log.debug(f'Started {sensor_count()} threads and opened a connection to a publisher')
 
                 # Build a list of thread futures.
