@@ -13,13 +13,13 @@ from typing import TYPE_CHECKING
 from setproctitle import setproctitle
 from time import sleep
 from functools import partial
-from cachetools import TTLCache
 from threading import Thread
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from orchidarium.publishers.influxdb import InfluxDBPublisher
 from orchidarium.api import app
 from orchidarium.sensors import SoilSensor, HumiditySensor
-from orchidarium import env, sensor_count
+from orchidarium.support import sensor_count
+from orchidarium import env
 
 if TYPE_CHECKING:
     from typing import List
@@ -31,11 +31,6 @@ logging.basicConfig(
     stream=sys.stdout,
     level=logging.DEBUG if env['DEBUG'] != '' else logging.INFO,
     format='%(asctime)s | %(levelname)s | %(name)s | %(message)s'
-)
-
-cache: TTLCache = TTLCache(
-    maxsize=sensor_count(),
-    ttl=int(env['HEALTHCHECK_CACHE_TTL'])
 )
 
 

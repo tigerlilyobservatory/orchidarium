@@ -8,7 +8,8 @@ from flask import Response
 from flask import Flask
 from pathlib import Path
 from orchidarium.lib.json import cached_read_json
-from orchidarium import env, sensor_count
+from orchidarium.support import sensor_count
+from orchidarium import env
 
 import logging
 

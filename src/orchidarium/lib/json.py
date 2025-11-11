@@ -3,9 +3,9 @@ from __future__ import annotations
 import json
 import logging
 
-from orchidarium.entrypoint import cache
 from pathlib import Path
 from typing import TYPE_CHECKING
+from orchidarium.support import cache
 
 if TYPE_CHECKING:
     from typing import Dict
