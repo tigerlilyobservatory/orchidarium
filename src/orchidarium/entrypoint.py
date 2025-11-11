@@ -55,17 +55,21 @@ def daemon() -> int:
                 port=int(env['HEALTHCHECK_PORT'])
             ),
             # Do not block upon start().
-            daemon=True
+            daemon=True,
+            name='healthcheck'
         ),
     ]
 
     for _dthread in _main_process_daemon_threads:
         _dthread.start()
+        log.debug(f'Started thread "{_dthread.name}": {_dthread.is_alive()}')
 
     try:
         while True:
             # Start as many threads as there are sensors.
             with ThreadPoolExecutor(max_workers=sensor_count(), thread_name_prefix='orchidarium') as pool, InfluxDBPublisher() as publisher:
+                log.debug(f'Started {sensor_count()} threads and opened a connection to a publisher')
+
                 # Build a list of thread futures.
                 threads: List[Future] = []
 
@@ -79,15 +83,13 @@ def daemon() -> int:
                         )
                     )
 
-                filtered_threads = [thread for thread in threads if thread is not None]
-
-                for thread in as_completed(filtered_threads):
+                for thread in as_completed(threads):
                     try:
                         thread.result()
                     except Exception:
                         log.error(f'Thread {thread} failed. Full traceback: {traceback.format_exc()}')
 
-                        for _thread in filtered_threads:
+                        for _thread in threads:
                             if _thread is not thread:
                                 log.debug(f'Terminating thread "{_thread}"')
                                 _thread.cancel()

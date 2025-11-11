@@ -1,5 +1,4 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
 
 import inspect
 import orchidarium.sensors
@@ -7,6 +6,7 @@ import orchidarium.sensors
 from functools import lru_cache
 # from cachetools import TTLCache
 # from orchidarium import env
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from typing import Generator, Type

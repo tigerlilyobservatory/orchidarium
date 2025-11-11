@@ -47,6 +47,8 @@ def create_healthcheck_api(app: Flask) -> None:
         app (Flask): Flask app instance.
     """
 
+    log.debug(f'Creating healthcheck API')
+
     @app.get('/health')
     def healthcheck() -> Response:
         """
