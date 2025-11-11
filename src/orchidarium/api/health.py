@@ -7,7 +7,7 @@ from http import HTTPStatus
 from flask import Response
 from flask import Flask
 from pathlib import Path
-from orchidarium.lib.json import cached_read_json
+from orchidarium.lib.json import read_json
 from orchidarium.support import sensor_count
 from orchidarium import env
 
@@ -61,7 +61,7 @@ def create_healthcheck_api(app: Flask) -> None:
         """
         if len(list(Path(env['HEALTHCHECK_CACHE_PATH']).iterdir())) == sensor_count():
             for sensor_health_result_f in Path(env['HEALTHCHECK_CACHE_PATH']).iterdir():
-                if not cached_read_json(path=sensor_health_result_f)['healthcheck']['readout']:
+                if not read_json(path=sensor_health_result_f)['healthcheck']['readout']:
                     return _FAILED
             else:
                 if len(list(Path(env['HEALTHCHECK_CACHE_PATH']).iterdir())) != 0:
@@ -85,7 +85,7 @@ def create_healthcheck_api(app: Flask) -> None:
         """
         if len(list(Path(env['HEALTHCHECK_CACHE_PATH']).iterdir())) == sensor_count():
             for sensor_health_result_f in Path(env['HEALTHCHECK_CACHE_PATH']).iterdir():
-                if not (_jsn := cached_read_json(path=sensor_health_result_f)['healthcheck']['publish']) and not _jsn['healthcheck']['readout']:
+                if not (_jsn := read_json(path=sensor_health_result_f)['healthcheck']['publish']) and not _jsn['healthcheck']['readout']:
                     return _FAILED
             else:
                 if len(list(Path(env['HEALTHCHECK_CACHE_PATH']).iterdir())) != 0:

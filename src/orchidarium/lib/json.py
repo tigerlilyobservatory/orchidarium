@@ -5,7 +5,6 @@ import logging
 
 from pathlib import Path
 from typing import TYPE_CHECKING
-from orchidarium.support import cache
 
 if TYPE_CHECKING:
     from typing import Dict
@@ -14,7 +13,7 @@ if TYPE_CHECKING:
 __all__ = [
     'write_json',
     'read_json',
-    'cached_read_json'
+    # 'cached_read_json'
 ]
 
 log = logging.getLogger(__name__)
@@ -65,16 +64,16 @@ def read_json(path: Path | str) -> Dict:
         return dict()
 
 
-def cached_read_json(path: Path | str) -> Dict:
-    """
-    Same function as 'read_json', the reads from disk are cached for the interval, however.
-    """
-    try:
-        k = cache[str(path)]
-        log.debug(f'Cache key hit, using cached value for path "{path}" on disk')
-        return k
-    except KeyError:
-        log.debug(f'Cache miss, reading JSON cache "{path}" from disk')
-        _json = read_json(path)
-        cache[str(path)] = _json
-        return _json
+# def cached_read_json(path: Path | str) -> Dict:
+#     """
+#     Same function as 'read_json', the reads from disk are cached for the interval, however.
+#     """
+#     try:
+#         k = cache[str(path)]
+#         log.debug(f'Cache key hit, using cached value for path "{path}" on disk')
+#         return k
+#     except KeyError:
+#         log.debug(f'Cache miss, reading JSON cache "{path}" from disk')
+#         _json = read_json(path)
+#         cache[str(path)] = _json
+#         return _json
