@@ -16,7 +16,7 @@ Current supported sensors by this Python package include a
 ## Build
 
 <p align="left" width="100%">
-  <img width="75%" src="./img/hex_empty.jpeg" alt="build">
+  <img width="75%" src="./img/finished.JPG" alt="build">
 </p>
 
 I've sourced a lot of components from various sites for this build.
