@@ -1,0 +1,3 @@
+# Soil sensor
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0487", ATTRS{idProduct}=="0007", MODE="0666" SYMLINK+="soil"
+SUBSYSTEM=="usb_device", ATTRS{idVendor}=="0487", ATTRS{idProduct}=="0007", MODE="0666"

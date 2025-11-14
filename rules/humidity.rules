@@ -1,0 +1,3 @@
+# Humidity & temperature sensor
+SUBSYSTEM=="usb", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", MODE="0666" SYMLINK+="humidity"
+SUBSYSTEM=="usb_device", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", MODE="0666"
