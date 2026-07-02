@@ -21,6 +21,8 @@ Window {
     readonly property int relayCount: hasConfig ? config.relayCount : defaultConfig.relayCount
     readonly property string intervalSeconds: hasConfig ? config.intervalSeconds : defaultConfig.intervalSeconds
     readonly property string maxPointBacklog: hasConfig ? config.maxPointBacklog : defaultConfig.maxPointBacklog
+    property string intervalInputValue: intervalSeconds
+    property string maxPointBacklogInputValue: maxPointBacklog
 
     visibility: fullscreenEnabled ? Window.FullScreen : Window.Windowed
 
@@ -28,6 +30,8 @@ Window {
 
     Component.onCompleted: {
         relayStates = Array(relayCount).fill("auto")
+        intervalInputValue = intervalSeconds
+        maxPointBacklogInputValue = maxPointBacklog
     }
 
     onRelayCountChanged: {
@@ -68,6 +72,33 @@ Window {
         return "off"
     }
 
+    function normalizeIntegerText(value, minimum, fallback) {
+        let textValue = String(value).trim()
+
+        if (!/^[0-9]+$/.test(textValue))
+            return fallback
+
+        return String(Math.max(minimum, Number(textValue)))
+    }
+
+    function commitIntervalInput() {
+        intervalInputValue = normalizeIntegerText(intervalInputValue, 5, intervalSeconds)
+
+        if (hasConfig && config.setIntervalSeconds) {
+            config.setIntervalSeconds(intervalInputValue)
+            intervalInputValue = config.intervalSeconds
+        }
+    }
+
+    function commitMaxPointBacklogInput() {
+        maxPointBacklogInputValue = normalizeIntegerText(maxPointBacklogInputValue, 0, maxPointBacklog)
+
+        if (hasConfig && config.setMaxPointBacklog) {
+            config.setMaxPointBacklog(maxPointBacklogInputValue)
+            maxPointBacklogInputValue = config.maxPointBacklog
+        }
+    }
+
     Connections {
         target: hasConfig ? config : null
 
@@ -83,11 +114,11 @@ Window {
         }
 
         function onIntervalSecondsChanged() {
-            intervalInput.text = config.intervalSeconds
+            intervalInputValue = config.intervalSeconds
         }
 
         function onMaxPointBacklogChanged() {
-            maxPointBacklogInput.text = config.maxPointBacklog
+            maxPointBacklogInputValue = config.maxPointBacklog
         }
     }
 
@@ -249,7 +280,7 @@ Window {
 
                         Text {
                             Layout.fillWidth: true
-                            text: "Collection interval"
+                            text: "Collection interval (s)"
                             color: "#333333"
                             font.pixelSize: 16
                             font.bold: true
@@ -258,18 +289,15 @@ Window {
                         TextField {
                             id: intervalInput
                             Layout.fillWidth: true
-                            text: intervalSeconds
+                            text: intervalInputValue
                             placeholderText: "Seconds"
                             inputMethodHints: Qt.ImhDigitsOnly
                             validator: IntValidator { bottom: 5 }
                             selectByMouse: true
 
-                            onEditingFinished: {
-                                if (hasConfig) {
-                                    config.setIntervalSeconds(text)
-                                    text = config.intervalSeconds
-                                }
-                            }
+                            onTextEdited: intervalInputValue = text
+                            onEditingFinished: commitIntervalInput()
+                            Keys.onReturnPressed: commitIntervalInput()
                         }
                     }
 
@@ -288,18 +316,15 @@ Window {
                         TextField {
                             id: maxPointBacklogInput
                             Layout.fillWidth: true
-                            text: maxPointBacklog
+                            text: maxPointBacklogInputValue
                             placeholderText: "0 means infinite"
                             inputMethodHints: Qt.ImhDigitsOnly
                             validator: IntValidator { bottom: 0 }
                             selectByMouse: true
 
-                            onEditingFinished: {
-                                if (hasConfig) {
-                                    config.setMaxPointBacklog(text)
-                                    text = config.maxPointBacklog
-                                }
-                            }
+                            onTextEdited: maxPointBacklogInputValue = text
+                            onEditingFinished: commitMaxPointBacklogInput()
+                            Keys.onReturnPressed: commitMaxPointBacklogInput()
                         }
                     }
 
