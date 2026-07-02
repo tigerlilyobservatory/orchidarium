@@ -22,6 +22,7 @@ USER root
 
 RUN apt update \
     && apt install -y --no-install-recommends \
+        fonts-roboto \
         libdbus-1-3 \
         libegl1 \
         libfontconfig1 \

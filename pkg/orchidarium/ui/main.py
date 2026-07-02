@@ -5,10 +5,13 @@ import sys
 
 from pathlib import Path
 
-from PySide6.QtGui import QGuiApplication
+from PySide6.QtGui import QFont, QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
 
 from orchidarium.ui.config import Config
+
+
+UI_FONT_FAMILY = 'Roboto'
 
 
 def run() -> None:
@@ -16,6 +19,7 @@ def run() -> None:
     Run the Qt/QML UI.
     """
     app = QGuiApplication(sys.argv)
+    app.setFont(QFont(UI_FONT_FAMILY))
 
     engine = QQmlApplicationEngine()
     engine.addImportPath(str(Path(__file__).parent))

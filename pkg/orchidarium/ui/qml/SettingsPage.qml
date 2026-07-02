@@ -68,21 +68,34 @@ Item {
         anchors.fill: parent
         color: "#ffffff"
 
+        Text {
+            id: pageTitle
+
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.leftMargin: 76
+            anchors.rightMargin: 28
+            anchors.top: parent.top
+            anchors.topMargin: 20
+            height: 44
+            text: "Settings"
+            color: "#222222"
+            font.pixelSize: 28
+            font.bold: true
+            verticalAlignment: Text.AlignVCenter
+            elide: Text.ElideRight
+        }
+
         ColumnLayout {
-            anchors.fill: parent
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: pageTitle.bottom
+            anchors.bottom: parent.bottom
             anchors.leftMargin: 28
             anchors.rightMargin: 28
-            anchors.topMargin: 76
+            anchors.topMargin: 18
             anchors.bottomMargin: 28
             spacing: 18
-
-            Text {
-                Layout.fillWidth: true
-                text: "Settings"
-                color: "#222222"
-                font.pixelSize: 28
-                font.bold: true
-            }
 
             Rectangle {
                 Layout.fillWidth: true

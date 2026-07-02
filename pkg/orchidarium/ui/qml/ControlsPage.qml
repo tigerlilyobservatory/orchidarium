@@ -144,21 +144,34 @@ Item {
         anchors.fill: parent
         color: "#ffffff"
 
+        Text {
+            id: pageTitle
+
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.leftMargin: 76
+            anchors.rightMargin: 20
+            anchors.top: parent.top
+            anchors.topMargin: 20
+            height: 44
+            text: "Relay states"
+            color: root.relaysFrozen ? "#9a9a9a" : "#222222"
+            font.pixelSize: 28
+            font.bold: true
+            verticalAlignment: Text.AlignVCenter
+            elide: Text.ElideRight
+        }
+
         ColumnLayout {
-            anchors.fill: parent
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: pageTitle.bottom
+            anchors.bottom: parent.bottom
             anchors.leftMargin: 20
             anchors.rightMargin: 20
-            anchors.topMargin: 76
+            anchors.topMargin: 18
             anchors.bottomMargin: 20
             spacing: 18
-
-            Text {
-                Layout.fillWidth: true
-                text: "Relay states"
-                color: root.relaysFrozen ? "#9a9a9a" : "#222222"
-                font.pixelSize: 28
-                font.bold: true
-            }
 
             Row {
                 Layout.fillWidth: true
