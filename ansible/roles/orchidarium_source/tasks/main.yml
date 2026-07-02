@@ -37,7 +37,7 @@
 - name: Ensure remote persisted configuration directory exists
   become: true
   ansible.builtin.file:
-    path: "{{ orchidarium_remote_root }}/.orchidarium/config"
+    path: "{{ orchidarium_remote_root }}/.orchidarium"
     state: directory
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"

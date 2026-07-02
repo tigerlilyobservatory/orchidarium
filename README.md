@@ -89,7 +89,7 @@ tini
 
 ### Runtime Configuration
 
-The UI persists user-defined runtime settings to `/opt/orchidarium/config/state.json`. Docker Compose mounts `ORCHIDARIUM_CONFIG_DIR` at `/opt/orchidarium/config`; local startup defaults that host directory to `./.orchidarium/config`.
+The UI persists user-defined runtime settings to `/opt/orchidarium/.orchidarium/state.json`. Docker Compose mounts `ORCHIDARIUM_CONFIG_DIR` at `/opt/orchidarium/.orchidarium`; local startup defaults that host directory to `./.orchidarium`.
 
 - `INTERVAL`: sensor collection interval in seconds. The minimum value is `5`.
 - `MAX_POINT_BACKLOG`: largest allowed publisher queue backlog before `/ready` fails. The minimum value is `0`, and `0` means no configured maximum.

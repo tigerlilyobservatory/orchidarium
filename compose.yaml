@@ -145,7 +145,7 @@ services:
       # Persisted user-defined UI configuration.
       - type: bind
         source: ${ORCHIDARIUM_CONFIG_DIR}
-        target: /opt/orchidarium/config
+        target: /opt/orchidarium/.orchidarium
         bind:
           create_host_path: false
       # Wayland display socket from the host desktop session.

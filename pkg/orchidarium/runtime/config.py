@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
 
 STATE_ENV_VAR: Final[str] = 'ORCHIDARIUM_STATE_PATH'
-DEFAULT_STATE_PATH: Final[Path] = Path(os.getenv(STATE_ENV_VAR, '/opt/orchidarium/config/state.json'))
+DEFAULT_STATE_PATH: Final[Path] = Path(os.getenv(STATE_ENV_VAR, '/opt/orchidarium/.orchidarium/state.json'))
 STATE_FIELD_NAMES: Final[tuple[str, ...]] = (
     'INTERVAL',
     'MAX_POINT_BACKLOG',

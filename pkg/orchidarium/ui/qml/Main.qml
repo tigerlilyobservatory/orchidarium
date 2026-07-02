@@ -99,6 +99,11 @@ Window {
         }
     }
 
+    function showPage(index) {
+        swipeView.currentIndex = index
+        navigationDrawer.close()
+    }
+
     Connections {
         target: hasConfig ? config : null
 
@@ -129,7 +134,10 @@ Window {
         Item {
             Row {
                 anchors.fill: parent
-                anchors.margins: 20
+                anchors.leftMargin: 20
+                anchors.rightMargin: 20
+                anchors.topMargin: 76
+                anchors.bottomMargin: 20
                 spacing: 10
 
                 Repeater {
@@ -263,7 +271,10 @@ Window {
 
                 ColumnLayout {
                     anchors.fill: parent
-                    anchors.margins: 28
+                    anchors.leftMargin: 28
+                    anchors.rightMargin: 28
+                    anchors.topMargin: 76
+                    anchors.bottomMargin: 28
                     spacing: 18
 
                     Text {
@@ -332,6 +343,102 @@ Window {
                         Layout.fillHeight: true
                     }
                 }
+            }
+        }
+    }
+
+    ToolButton {
+        id: menuButton
+        z: 10
+        width: 52
+        height: 52
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.margins: 12
+        display: AbstractButton.IconOnly
+        ToolTip.visible: hovered
+        ToolTip.text: "Menu"
+
+        background: Rectangle {
+            color: menuButton.down ? "#d8d8d8"
+                 : menuButton.hovered ? "#eeeeee"
+                 : "#ffffff"
+            radius: 4
+            border.color: "#c7c7c7"
+            border.width: 1
+        }
+
+        contentItem: Item {
+            implicitWidth: 24
+            implicitHeight: 24
+
+            Column {
+                anchors.centerIn: parent
+                spacing: 5
+
+                Repeater {
+                    model: 3
+
+                    Rectangle {
+                        width: 24
+                        height: 3
+                        radius: 1.5
+                        color: "#222222"
+                    }
+                }
+            }
+        }
+
+        onClicked: navigationDrawer.open()
+    }
+
+    Drawer {
+        id: navigationDrawer
+        z: 20
+        width: Math.min(parent.width * 0.72, 280)
+        height: parent.height
+        edge: Qt.LeftEdge
+        modal: true
+        interactive: true
+
+        background: Rectangle {
+            color: "#ffffff"
+        }
+
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 16
+            spacing: 8
+
+            Item {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 18
+            }
+
+            Text {
+                Layout.fillWidth: true
+                text: "Orchidarium"
+                color: "#222222"
+                font.pixelSize: 22
+                font.bold: true
+            }
+
+            ItemDelegate {
+                Layout.fillWidth: true
+                text: "Controls"
+                highlighted: swipeView.currentIndex === 0
+                onClicked: showPage(0)
+            }
+
+            ItemDelegate {
+                Layout.fillWidth: true
+                text: "Settings"
+                highlighted: swipeView.currentIndex === 1
+                onClicked: showPage(1)
+            }
+
+            Item {
+                Layout.fillHeight: true
             }
         }
     }
