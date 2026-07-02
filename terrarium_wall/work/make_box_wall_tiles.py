@@ -19,11 +19,24 @@ PANEL_HEIGHT_IN = 4.0
 SHORT_COLUMNS = 3
 LONG_COLUMNS = 6
 WALL_ROWS = 3
-BOX_PANEL_TOP_SCALE = 0.96
-BOX_PANEL_FOOT_TO_TOP_SCALE = 0.35
-BOX_TUBE_WALL = 1.55
-WHITE_FREQUENCY = 0.18
-ORANGE_FREQUENCY = 0.225
+BOX_PANEL_TOP_SCALE = 0.995
+BOX_PANEL_FOOT_TO_TOP_SCALE = 0.42
+BOX_TUBE_WALL = 1.00
+BOX_OUTER_BASE_SCALE = 0.66
+BOX_BOUNDARY_SCALE = 0.999
+BOX_BASE_SMOOTHING = 1
+BOX_TOP_POLAR_RADIUS_POWER = 0.85
+BOX_TOP_POLAR_EDGE_SAMPLES = 8
+BOX_TOP_SMOOTHING = 0
+BOX_DELAUNAY_POINT_SCALE = 0.25
+BOX_DELAUNAY_RADIUS_SCALE = 1.90
+BOX_TUBE_HEIGHT_MIN_IN = 0.25
+BOX_TUBE_HEIGHT_MAX_IN = 1.00
+BOX_RIM_LIFT = 1.35
+BOX_RIM_INNER_DROP = 0.95
+BOX_RIM_WAVE = 0.0
+CLEAR_FREQUENCY = 0.90
+ORANGE_FREQUENCY = 0.02
 PERF_HOLE_SIZE = 2.6
 PERF_SPACING = 4.8
 PERF_EDGE_MARGIN = 6.0
@@ -38,6 +51,10 @@ LABEL_CHAR_GAP = 0.85
 LABEL_X = 5.0
 LABEL_Y = 5.0
 LABEL_RECESS_DEPTH = 0.75
+BOTTOM_NOTE_TEXT = "willow <3 emma"
+BOTTOM_NOTE_TILE_LABEL = "A11"
+BOTTOM_NOTE_PIXEL = 0.80
+BOTTOM_NOTE_GAP = 0.48
 POST_STACK_CONNECTOR_OFFSET = 5.5
 POST_STACK_CONNECTOR_CHAMFER = 2.4
 POST_STACK_TAB_RIB = 0.28
@@ -51,6 +68,18 @@ def configure_box_profile():
     low.configure_low_profile()
     tile.POINT_REJECTION_RADIUS = low.LOW_POINT_REJECTION_RADIUS
     tile.WALL = BOX_TUBE_WALL
+    tile.OUTER_BASE_SCALE = BOX_OUTER_BASE_SCALE
+    tile.BOUNDARY_SCALE = BOX_BOUNDARY_SCALE
+    tile.BASE_SMOOTHING = BOX_BASE_SMOOTHING
+    tile.TOP_SMOOTHING = BOX_TOP_SMOOTHING
+    tile.RIM_LIFT = BOX_RIM_LIFT
+    tile.RIM_INNER_DROP = BOX_RIM_INNER_DROP
+    tile.RIM_WAVE = BOX_RIM_WAVE
+    tile.MAX_RIM_EXTRA = tile.RIM_LIFT + tile.RIM_WAVE * 1.45
+    base.MAX_Z = base.BASE + BOX_TUBE_HEIGHT_MAX_IN * INCH + tile.MAX_RIM_EXTRA
+    base.TUBE_MAX_HEIGHT = base.MAX_Z - base.BASE
+    tile.TUBE_MAX_HEIGHT = base.TUBE_MAX_HEIGHT
+    tile.BODY_MAX_HEIGHT = base.TUBE_MAX_HEIGHT - tile.MAX_RIM_EXTRA
 
 
 def panel_specs():
@@ -86,14 +115,24 @@ def face_specs():
     height = BOX_HEIGHT_IN * INCH
     return [
         {
-            "name": "short",
-            "label": "short face",
-            "code": "S",
+            "name": "short_a",
+            "label": "short face A",
+            "code": "A",
             "width": short_w,
             "height": height,
             "columns": SHORT_COLUMNS,
             "rows": WALL_ROWS,
             "seed": tile.SEED + 140,
+        },
+        {
+            "name": "short_b",
+            "label": "short face B",
+            "code": "B",
+            "width": short_w,
+            "height": height,
+            "columns": SHORT_COLUMNS,
+            "rows": WALL_ROWS,
+            "seed": tile.SEED + 184,
         },
         {
             "name": "long",
@@ -145,6 +184,14 @@ def rect_poly(rect):
     return [(xmin, ymin), (xmax, ymin), (xmax, ymax), (xmin, ymax)]
 
 
+def mirror_rects_x(rects):
+    if not rects:
+        return []
+    xmin = min(rect[0] for rect in rects)
+    xmax = max(rect[1] for rect in rects)
+    return [(xmin + xmax - rect[1], xmin + xmax - rect[0], rect[2], rect[3]) for rect in rects]
+
+
 def rect_overlaps_loop(rect, loop):
     poly = rect_poly(rect)
     return (
@@ -193,6 +240,8 @@ def label_segment_rects(label):
         "7": "abc",
         "8": "abcdefg",
         "9": "abfgcd",
+        "A": "abcefg",
+        "B": "fcdeg",
         "S": "afgcd",
         "L": "fed",
     }
@@ -223,6 +272,54 @@ def label_segment_rects(label):
         y = LABEL_Y
         for segment in segments.get(char, ""):
             add_segment(x, y, segment)
+    return rects
+
+
+def bottom_note_rects(width, height):
+    glyphs = {
+        " ": ("00000", "00000", "00000", "00000", "00000", "00000", "00000"),
+        "3": ("11110", "00001", "00001", "01110", "00001", "00001", "11110"),
+        "<": ("00010", "00100", "01000", "10000", "01000", "00100", "00010"),
+        "a": ("00000", "01110", "00001", "01111", "10001", "10011", "01101"),
+        "e": ("00000", "01110", "10001", "11111", "10000", "10001", "01110"),
+        "i": ("00100", "00000", "01100", "00100", "00100", "00100", "01110"),
+        "l": ("01100", "00100", "00100", "00100", "00100", "00100", "01110"),
+        "m": ("00000", "11010", "10101", "10101", "10101", "10101", "10101"),
+        "o": ("00000", "01110", "10001", "10001", "10001", "10001", "01110"),
+        "w": ("00000", "10001", "10001", "10001", "10101", "10101", "01010"),
+    }
+    text = BOTTOM_NOTE_TEXT.lower()
+    pixel = BOTTOM_NOTE_PIXEL
+    ink = pixel * 0.90
+    char_w = 5.0 * pixel
+    char_h = 7.0 * pixel
+    advance = char_w + BOTTOM_NOTE_GAP
+    total_w = len(text) * advance - BOTTOM_NOTE_GAP
+    x0 = max(LABEL_X, (width - total_w) / 2.0)
+    y0 = max(LABEL_Y, (height - char_h) / 2.0)
+    rects = []
+
+    def note_rect(xmin, xmax, ymin, ymax):
+        return (round(xmin, 3), round(xmax, 3), round(ymin, 3), round(ymax, 3))
+
+    for char_index, char in enumerate(text):
+        glyph = glyphs.get(char)
+        if glyph is None:
+            continue
+        gx = x0 + char_index * advance
+        for row_index, row in enumerate(glyph):
+            col_index = 0
+            y = y0 + (6 - row_index) * pixel
+            while col_index < len(row):
+                if row[col_index] != "1":
+                    col_index += 1
+                    continue
+                run_start = col_index
+                while col_index < len(row) and row[col_index] == "1":
+                    col_index += 1
+                x = gx + run_start * pixel
+                run_w = (col_index - run_start) * pixel
+                rects.append(note_rect(x, x + run_w - (pixel - ink), y, y + ink))
     return rects
 
 
@@ -285,13 +382,15 @@ def add_corner_filler(mesh, width, height, side):
     mesh.add_tri(bottom_b, outer_b, top_b)
 
 
-def add_rect_base_with_bottom_ports(mesh, width, height, cells=None, perforated=False, label=None, corner_filler=None):
+def add_rect_base_with_bottom_ports(mesh, width, height, cells=None, perforated=False, label=None, corner_filler=None, include_bottom_note=False):
     socket_rects = rect_socket_rects(width, height)
-    label_rects = label_segment_rects(label) if label else []
-    perf_rects = perforation_rects(width, height, socket_rects, cells or [], label_rects) if perforated else []
+    label_rects = mirror_rects_x(label_segment_rects(label)) if label else []
+    note_rects = mirror_rects_x(bottom_note_rects(width, height)) if include_bottom_note else []
+    text_rects = label_rects + note_rects
+    perf_rects = perforation_rects(width, height, socket_rects, cells or [], text_rects) if perforated else []
     through_rects = perf_rects
-    bottom_recess_rects = socket_rects + label_rects
-    all_rects = socket_rects + through_rects + label_rects
+    bottom_recess_rects = socket_rects + text_rects
+    all_rects = socket_rects + through_rects + text_rects
     xs = sorted(set([0.0, width] + [value for rect in all_rects for value in (rect[0], rect[1])]))
     ys = sorted(set([0.0, height] + [value for rect in all_rects for value in (rect[2], rect[3])]))
     for xi in range(len(xs) - 1):
@@ -323,7 +422,7 @@ def add_rect_base_with_bottom_ports(mesh, width, height, cells=None, perforated=
     for xmin, xmax, ymin, ymax in through_rects:
         add_rect_walls(mesh, (xmin, xmax, ymin, ymax), base.BASE, xs, ys)
 
-    for xmin, xmax, ymin, ymax in label_rects:
+    for xmin, xmax, ymin, ymax in text_rects:
         z = min(LABEL_RECESS_DEPTH, base.BASE - 0.25)
         add_rect_ceiling(mesh, (xmin, xmax, ymin, ymax), z, xs, ys)
         add_rect_walls(mesh, (xmin, xmax, ymin, ymax), z, xs, ys)
@@ -369,6 +468,20 @@ def rejection_points(width, height, count, radius, seed):
                 break
     if len(points) != count:
         raise ValueError("Could not place %d points in %.1f x %.1f face" % (count, width, height))
+    return points
+
+
+def rejection_points_rect(xmin, xmax, ymin, ymax, count, radius, seed):
+    rng = random.Random(seed)
+    points = []
+    for _ in range(tile.POINT_REJECTION_ATTEMPTS):
+        candidate = (xmin + rng.random() * (xmax - xmin), ymin + rng.random() * (ymax - ymin))
+        if all(math.hypot(candidate[0] - point[0], candidate[1] - point[1]) >= radius for point in points):
+            points.append(candidate)
+            if len(points) >= count:
+                break
+    if len(points) != count:
+        raise ValueError("Could not place %d points in %.1f x %.1f face field" % (count, xmax - xmin, ymax - ymin))
     return points
 
 
@@ -457,6 +570,26 @@ def face_voronoi_polygons(width, height, count, radius, seed):
         if tile.signed_area(poly) < 0.0:
             poly.reverse()
         polygons.append((site, poly))
+    return polygons
+
+
+def face_delaunay_polygons(width, height, count, radius, seed):
+    bound = max(FACE_EDGE_OVERHANG, radius * 1.15)
+    expanded_area = (width + bound * 2.0) * (height + bound * 2.0)
+    central_area = width * height
+    expanded_count = max(12, int(round(count * expanded_area / central_area)))
+    points = rejection_points_rect(-bound, width + bound, -bound, height + bound, expanded_count, radius, seed)
+    polygons = []
+    for tri in tile.delaunay(points):
+        polygon = [points[index] for index in tri]
+        if tile.signed_area(polygon) < 0.0:
+            polygon.reverse()
+        centroid = tile.loop_center(polygon)
+        if not (0.0 <= centroid[0] < width and 0.0 <= centroid[1] < height):
+            continue
+        if abs(tile.signed_area(polygon)) < tile.MIN_AREA:
+            continue
+        polygons.append((centroid, polygon))
     return polygons
 
 
@@ -639,11 +772,24 @@ def voronoi_cells_from_points(width, height, count, radius, seed):
 
 def color_for_cell(rng):
     roll = rng.random()
-    if roll < ORANGE_FREQUENCY:
+    if roll < CLEAR_FREQUENCY:
+        return 1
+    if roll < CLEAR_FREQUENCY + ORANGE_FREQUENCY:
         return 4
-    if roll < ORANGE_FREQUENCY + WHITE_FREQUENCY:
-        return 3
-    return 2
+    return 3
+
+
+def assign_face_colors(cells, rng):
+    indices = list(range(len(cells)))
+    rng.shuffle(indices)
+    clear_count = int(round(len(cells) * CLEAR_FREQUENCY))
+    orange_count = int(round(len(cells) * ORANGE_FREQUENCY))
+    for cell in cells:
+        cell["color"] = 3
+    for index in indices[:clear_count]:
+        cells[index]["color"] = 1
+    for index in indices[clear_count : clear_count + orange_count]:
+        cells[index]["color"] = 4
 
 
 def materialized_voronoi_pieces(width, height, polygons):
@@ -661,7 +807,70 @@ def point_count_for_panel(width, height):
 
 def point_count_for_face(width, height):
     low_area = (4.0 * INCH) * (4.0 * INCH)
-    return max(24, int(round(low.LOW_POINT_COUNT * width * height / low_area)))
+    return max(12, int(round(low.LOW_POINT_COUNT * BOX_DELAUNAY_POINT_SCALE * width * height / low_area)))
+
+
+def smooth_wave_body_height(site, width, height, seed):
+    x = site[0] / max(width, 1e-6)
+    y = site[1] / max(height, 1e-6)
+    rng = random.Random(seed + 701)
+    phase = rng.random() * 2.0 * math.pi
+    primary_x = rng.uniform(0.82, 1.34)
+    primary_y = rng.uniform(-0.78, 0.86)
+    secondary_x = rng.uniform(-0.52, 0.68)
+    secondary_y = rng.uniform(0.92, 1.48) * (-1.0 if rng.random() < 0.5 else 1.0)
+    primary = math.sin(2.0 * math.pi * (primary_x * x + primary_y * y) + phase)
+    secondary = math.sin(2.0 * math.pi * (secondary_x * x + secondary_y * y) + phase * 0.43 + 1.7)
+    wave = 0.74 * primary + 0.26 * secondary
+    t = max(0.0, min(1.0, wave * 0.5 + 0.5))
+    return (BOX_TUBE_HEIGHT_MIN_IN + (BOX_TUBE_HEIGHT_MAX_IN - BOX_TUBE_HEIGHT_MIN_IN) * t) * INCH
+
+
+def clip_loop_to_rect_safe(loop, width, height):
+    clipped = clip_polygon_to_rect(loop, width, height)
+    if len(clipped) < 3 or abs(tile.signed_area(clipped)) < tile.MIN_AREA:
+        return None
+    if tile.signed_area(clipped) < 0.0:
+        clipped.reverse()
+    return clipped
+
+
+def sample_loop_edges(loop, samples_per_edge):
+    samples = max(1, int(samples_per_edge))
+    if samples <= 1:
+        return loop[:]
+    sampled = []
+    for index, point in enumerate(loop):
+        next_point = loop[(index + 1) % len(loop)]
+        for step in range(samples):
+            t = step / samples
+            sampled.append(
+                (
+                    point[0] * (1.0 - t) + next_point[0] * t,
+                    point[1] * (1.0 - t) + next_point[1] * t,
+                )
+            )
+    return sampled
+
+
+def polar_radius_loop(loop, power, samples_per_edge):
+    if power == 1.0:
+        return loop
+    center = tile.loop_center(loop)
+    sampled = sample_loop_edges(loop, samples_per_edge)
+    radii = [math.hypot(point[0] - center[0], point[1] - center[1]) for point in sampled]
+    min_radius = min((radius for radius in radii if radius > 1e-9), default=0.0)
+    if min_radius <= 1e-9:
+        return sampled
+    smoothed = []
+    for point, radius in zip(sampled, radii):
+        if radius <= 1e-9:
+            smoothed.append(point)
+            continue
+        new_radius = min_radius * ((radius / min_radius) ** power)
+        scale = new_radius / radius
+        smoothed.append((center[0] + (point[0] - center[0]) * scale, center[1] + (point[1] - center[1]) * scale))
+    return smoothed
 
 
 def constrain_loop_to_rect(loop, width, height, margin=tile.BASE_MARGIN):
@@ -717,7 +926,13 @@ def make_face_cells(face):
     height = face["height"]
     count = point_count_for_face(width, height)
     rng = random.Random(face["seed"] + 91)
-    polygons = face_voronoi_polygons(width, height, count, low.LOW_POINT_REJECTION_RADIUS, face["seed"])
+    polygons = face_delaunay_polygons(
+        width,
+        height,
+        count,
+        low.LOW_POINT_REJECTION_RADIUS * BOX_DELAUNAY_RADIUS_SCALE,
+        face["seed"],
+    )
     cells = []
     for site, polygon in polygons:
         area = abs(tile.signed_area(polygon))
@@ -725,12 +940,14 @@ def make_face_cells(face):
             continue
 
         centroid = tile.loop_center(polygon)
-        base_loop = tile.eroded_loop(polygon, centroid, tile.OUTER_BASE_SCALE, tile.BASE_SMOOTHING)
-        top_loop = tile.eroded_loop(polygon, centroid, tile.BOUNDARY_SCALE, tile.TOP_SMOOTHING)
-        top_loop = tile.smooth_loop(top_loop, tile.TOP_SMOOTHING)
+        base_loop = tile.eroded_loop(polygon, centroid, tile.OUTER_BASE_SCALE, BOX_BASE_SMOOTHING)
+        top_loop = tile.eroded_loop(polygon, centroid, BOX_BOUNDARY_SCALE, 0)
+        top_loop = polar_radius_loop(top_loop, BOX_TOP_POLAR_RADIUS_POWER, BOX_TOP_POLAR_EDGE_SAMPLES)
         center = tile.loop_center(top_loop)
         low_top_loop = tile.scaled_loop(top_loop, center, BOX_PANEL_TOP_SCALE)
-        low_top_loop = clip_loop_min_y(low_top_loop, 0.0)
+        low_top_loop = clip_loop_to_rect_safe(low_top_loop, width, height)
+        if low_top_loop is None:
+            continue
         center = tile.loop_center(low_top_loop)
         low_foot_loop = tile.scaled_loop(low_top_loop, center, BOX_PANEL_FOOT_TO_TOP_SCALE)
         cells.append(
@@ -743,12 +960,13 @@ def make_face_cells(face):
                 "top_loop": low_top_loop,
                 "low_foot_loop": low_foot_loop,
                 "low_top_loop": low_top_loop,
-                "height": low.LOW_TUBE_HEIGHT * (1.0 + rng.uniform(-low.LOW_HEIGHT_STAGGER, low.LOW_HEIGHT_STAGGER)),
-                "color": color_for_cell(rng),
+                "height": smooth_wave_body_height(site, width, height, face["seed"]),
+                "color": 3,
                 "rim_phase": rng.uniform(0.0, 2.0 * math.pi),
                 "rim_phase2": rng.uniform(0.0, 2.0 * math.pi),
             }
         )
+    assign_face_colors(cells, rng)
     return cells
 
 
@@ -756,8 +974,11 @@ def offset_cell_to_panel(cell, x0, y0, panel_width, panel_height):
     def shifted(loop):
         return [(x - x0, y - y0) for x, y in loop]
 
-    top_loop = shifted(cell["top_loop"])
-    base_loop = shifted(cell["low_foot_loop"])
+    top_loop = clip_loop_to_rect_safe(shifted(cell["top_loop"]), panel_width, panel_height)
+    if top_loop is None:
+        return None
+    center = tile.loop_center(top_loop)
+    base_loop = tile.scaled_loop(top_loop, center, BOX_PANEL_FOOT_TO_TOP_SCALE)
     base_loop = constrain_base_loop_to_rect(base_loop, panel_width, panel_height)
     base_center = tile.loop_center(base_loop)
     return {
@@ -783,7 +1004,9 @@ def cells_for_panel(face_cells, x0, y0, panel_width, panel_height):
     for cell in face_cells:
         x, y = cell["site"]
         if x0 <= x < x1 and y0 <= y < y1:
-            cells.append(offset_cell_to_panel(cell, x0, y0, panel_width, panel_height))
+            panel_cell = offset_cell_to_panel(cell, x0, y0, panel_width, panel_height)
+            if panel_cell is not None:
+                cells.append(panel_cell)
     return cells
 
 
@@ -980,7 +1203,7 @@ def coverage_estimate_rect(cells, width, height, samples=1200):
 
 
 def write_panel_preview(path, spec, cells, tiled=False):
-    palette = {1: "#111111", 2: "#d8b692", 3: "#f7f3e8", 4: "#e8662e"}
+    palette = {1: "#d8edf0", 3: "#f7f3e8", 4: "#e8662e"}
     width = spec["width"]
     height = spec["height"]
     cols = 3 if tiled else 1
@@ -993,7 +1216,7 @@ def write_panel_preview(path, spec, cells, tiled=False):
             for col in range(cols):
                 ox = col * width
                 oy = row * height
-                f.write('<rect x="%.3f" y="%.3f" width="%.3f" height="%.3f" fill="%s" stroke="#6e5a48" stroke-width="0.45" stroke-opacity="0.55"/>\n' % (ox, oy, width, height, palette[1]))
+                f.write('<rect x="%.3f" y="%.3f" width="%.3f" height="%.3f" fill="%s" stroke="#6e5a48" stroke-width="0.45" stroke-opacity="0.55"/>\n' % (ox, oy, width, height, palette[3]))
                 for cell in sorted(cells, key=lambda item: item["height"]):
                     loop = cell["top_loop"]
                     inner = tile.inner_loop_from_outer(loop)
@@ -1016,18 +1239,22 @@ def write_png_for_svg(svg_path, width=2200):
 
 def build_panel(spec, perforated=False):
     cells = make_panel_cells(spec)
-    meshes = {1: base.Mesh(), 2: base.Mesh(), 3: base.Mesh(), 4: base.Mesh()}
-    perforation_count = add_rect_base_with_bottom_ports(meshes[1], spec["width"], spec["height"], cells, perforated)
+    meshes = {1: base.Mesh(), 3: base.Mesh(), 4: base.Mesh()}
+    base_mesh = base.Mesh()
+    perforation_count = add_rect_base_with_bottom_ports(base_mesh, spec["width"], spec["height"], cells, perforated)
     for cell in cells:
         tile.add_eroded_triangle_tube(meshes[cell["color"]], cell)
 
     combined = base.Mesh()
+    combined.extend(base_mesh)
     for mesh in meshes.values():
         combined.extend(mesh)
 
     stem = "%s_%s%s" % (PREFIX, spec["name"], "_perforated" if perforated else "")
-    for color_number, label in ((1, "black"), (2, "beige"), (3, "white"), (4, "orange")):
-        meshes[color_number].write_ascii_stl(os.path.join(base.OUT_DIR, "%s_color_%d_%s.stl" % (stem, color_number, label)), "%s_color_%d_%s" % (stem, color_number, label))
+    base_mesh.write_ascii_stl(os.path.join(base.OUT_DIR, "%s_color_3_white_base.stl" % stem), "%s_color_3_white_base" % stem)
+    for color_number, label in ((1, "clear"), (3, "white"), (4, "orange")):
+        if meshes[color_number].tris:
+            meshes[color_number].write_ascii_stl(os.path.join(base.OUT_DIR, "%s_color_%d_%s.stl" % (stem, color_number, label)), "%s_color_%d_%s" % (stem, color_number, label))
     combined.write_ascii_stl(os.path.join(base.OUT_DIR, "%s_combined_reference.stl" % stem), "%s_combined_reference" % stem)
 
     top_overlaps = overlap_audit_rect(cells, spec["width"], spec["height"])
@@ -1059,25 +1286,27 @@ def build_panel_from_cells(stem, cells, panel_width, panel_height, label=None, c
 
     solid_base = base.Mesh()
     perforated_base = base.Mesh()
-    tube_meshes = {2: base.Mesh(), 3: base.Mesh(), 4: base.Mesh()}
-    add_rect_base_with_bottom_ports(solid_base, panel_width, panel_height, cells, perforated=False, label=label, corner_filler=corner_filler)
-    perforation_count = add_rect_base_with_bottom_ports(perforated_base, panel_width, panel_height, cells, perforated=True, label=label, corner_filler=corner_filler)
+    tube_meshes = {1: base.Mesh(), 3: base.Mesh(), 4: base.Mesh()}
+    include_bottom_note = label == BOTTOM_NOTE_TILE_LABEL
+    add_rect_base_with_bottom_ports(solid_base, panel_width, panel_height, cells, perforated=False, label=label, corner_filler=corner_filler, include_bottom_note=include_bottom_note)
+    perforation_count = add_rect_base_with_bottom_ports(perforated_base, panel_width, panel_height, cells, perforated=True, label=label, corner_filler=corner_filler, include_bottom_note=include_bottom_note)
     for cell in cells:
         tile.add_eroded_triangle_tube(tube_meshes[cell["color"]], cell)
 
     solid_base.write_ascii_stl(
-        os.path.join(panel_dir, "%s_base_solid_color_1_black.stl" % stem),
-        "%s_base_solid_color_1_black" % stem,
+        os.path.join(panel_dir, "%s_base_solid_color_3_white.stl" % stem),
+        "%s_base_solid_color_3_white" % stem,
     )
     perforated_base.write_ascii_stl(
-        os.path.join(panel_dir, "%s_base_perforated_color_1_black.stl" % stem),
-        "%s_base_perforated_color_1_black" % stem,
+        os.path.join(panel_dir, "%s_base_perforated_color_3_white.stl" % stem),
+        "%s_base_perforated_color_3_white" % stem,
     )
-    for color_number, color_label in ((2, "beige"), (3, "white"), (4, "orange")):
-        tube_meshes[color_number].write_ascii_stl(
-            os.path.join(panel_dir, "%s_tubes_color_%d_%s.stl" % (stem, color_number, color_label)),
-            "%s_tubes_color_%d_%s" % (stem, color_number, color_label),
-        )
+    for color_number, color_label in ((1, "clear"), (3, "white"), (4, "orange")):
+        if tube_meshes[color_number].tris:
+            tube_meshes[color_number].write_ascii_stl(
+                os.path.join(panel_dir, "%s_tubes_color_%d_%s.stl" % (stem, color_number, color_label)),
+                "%s_tubes_color_%d_%s" % (stem, color_number, color_label),
+            )
 
     top_overlaps = overlap_audit_plain(cells)
     body_overlaps = len(body_overlap_pairs_plain(cells))
@@ -1097,7 +1326,7 @@ def build_panel_from_cells(stem, cells, panel_width, panel_height, label=None, c
 
 
 def write_face_preview(path, face, cells):
-    palette = {1: "#111111", 2: "#d8b692", 3: "#f7f3e8", 4: "#e8662e"}
+    palette = {1: "#d8edf0", 3: "#f7f3e8", 4: "#e8662e"}
     width = face["width"]
     height = face["height"]
     margin = 8.0
@@ -1109,7 +1338,7 @@ def write_face_preview(path, face, cells):
             % (-margin, -margin, width + margin * 2.0, height + margin * 2.0, pixel_width, pixel_height)
         )
         f.write('<rect x="%.3f" y="%.3f" width="%.3f" height="%.3f" fill="#f4f0e7"/>\n' % (-margin, -margin, width + margin * 2.0, height + margin * 2.0))
-        f.write('<rect x="0" y="0" width="%.3f" height="%.3f" fill="%s"/>\n' % (width, height, palette[1]))
+        f.write('<rect x="0" y="0" width="%.3f" height="%.3f" fill="%s"/>\n' % (width, height, palette[3]))
         for cell in sorted(cells, key=lambda item: item["height"]):
             loop = cell["top_loop"]
             inner = tile.inner_loop_from_outer(loop)
@@ -1129,13 +1358,68 @@ def write_face_preview(path, face, cells):
         f.write("</svg>\n")
 
 
+def height_color(value, low_value, high_value):
+    t = (value - low_value) / max(high_value - low_value, 1e-6)
+    t = max(0.0, min(1.0, t))
+    low_rgb = (63, 73, 78)
+    mid_rgb = (180, 139, 97)
+    high_rgb = (250, 232, 184)
+    if t < 0.5:
+        u = t * 2.0
+        a, b = low_rgb, mid_rgb
+    else:
+        u = (t - 0.5) * 2.0
+        a, b = mid_rgb, high_rgb
+    rgb = tuple(int(round(a[i] + (b[i] - a[i]) * u)) for i in range(3))
+    return "#%02x%02x%02x" % rgb
+
+
+def write_face_height_preview(path, face, cells):
+    width = face["width"]
+    height = face["height"]
+    heights = [cell["height"] for cell in cells]
+    min_height = min(heights)
+    max_height = max(heights)
+    margin = 8.0
+    pixel_width = 2600
+    pixel_height = max(500, int(round(pixel_width * height / width)))
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="%.3f %.3f %.3f %.3f" width="%d" height="%d">\n'
+            % (-margin, -margin, width + margin * 2.0, height + margin * 2.0, pixel_width, pixel_height)
+        )
+        f.write('<rect x="%.3f" y="%.3f" width="%.3f" height="%.3f" fill="#f4f0e7"/>\n' % (-margin, -margin, width + margin * 2.0, height + margin * 2.0))
+        f.write('<rect x="0" y="0" width="%.3f" height="%.3f" fill="#101010"/>\n' % (width, height))
+        for cell in sorted(cells, key=lambda item: item["height"]):
+            loop = cell["top_loop"]
+            inner = tile.inner_loop_from_outer(loop)
+            if inner is None:
+                continue
+            points = " ".join("%.3f,%.3f" % (p[0], height - p[1]) for p in loop)
+            inner_points = " ".join("%.3f,%.3f" % (p[0], height - p[1]) for p in inner)
+            fill = height_color(cell["height"], min_height, max_height)
+            f.write('<polygon points="%s" fill="%s" stroke="#181818" stroke-width="0.25" stroke-opacity="0.35"/>\n' % (points, fill))
+            f.write('<polygon points="%s" fill="#101010" fill-opacity="0.35"/>\n' % inner_points)
+        for col in range(1, face["columns"]):
+            x = width * col / face["columns"]
+            f.write('<line x1="%.3f" y1="0" x2="%.3f" y2="%.3f" stroke="#ffffff" stroke-width="1.0" stroke-opacity="0.65"/>\n' % (x, x, height))
+        for row in range(1, face["rows"]):
+            y = height * row / face["rows"]
+            f.write('<line x1="0" y1="%.3f" x2="%.3f" y2="%.3f" stroke="#ffffff" stroke-width="1.0" stroke-opacity="0.65"/>\n' % (height - y, width, height - y))
+        f.write('<rect x="0" y="0" width="%.3f" height="%.3f" fill="none" stroke="#2b2621" stroke-width="1.1" stroke-opacity="0.65"/>\n' % (width, height))
+        f.write("</svg>\n")
+
+
 def build_face_panels(face):
     face_cells = make_face_cells(face)
     preview_dir = os.path.join(base.OUT_DIR, "previews")
     os.makedirs(preview_dir, exist_ok=True)
     preview_svg = os.path.join(preview_dir, "%s_%s_side_preview.svg" % (PREFIX, face["name"]))
+    height_preview_svg = os.path.join(preview_dir, "%s_%s_side_height_preview.svg" % (PREFIX, face["name"]))
     write_face_preview(preview_svg, face, face_cells)
+    write_face_height_preview(height_preview_svg, face, face_cells)
     write_png_for_svg(preview_svg)
+    write_png_for_svg(height_preview_svg)
 
     panel_width = face["width"] / face["columns"]
     panel_height = face["height"] / face["rows"]
@@ -1314,26 +1598,28 @@ def write_readme(path, summaries):
     with open(path, "w", encoding="utf-8") as f:
         f.write("Box wall tile set\n")
         f.write("=================\n\n")
-        f.write("Panel surface algorithm: one full-face Voronoi field for each box side length, subdivided into separate printable panels.\n")
+        f.write("Panel surface algorithm: one full-face Delaunay triangle field for each box side length, subdivided into separate printable panels.\n")
+        f.write("Tube body heights follow two blended face-specific smooth waves from %.2f in to %.2f in; rim-wave jitter is disabled for the box-wall tubes.\n" % (BOX_TUBE_HEIGHT_MIN_IN, BOX_TUBE_HEIGHT_MAX_IN))
         f.write("Each panel has a small shallow back-side label such as S11 or L36; labels are not visible from the front.\n")
-        f.write("Outer column panels include a black 45-degree corner filler lip; bottom-edge tube loops are clipped so the box can sit flat.\n")
+        f.write("Panel %s underside has a small centered recessed note: %s.\n" % (BOTTOM_NOTE_TILE_LABEL, BOTTOM_NOTE_TEXT))
+        f.write("Outer column panels include a white 45-degree corner filler lip; tube loops are clipped on all panel sides for cleaner edges.\n")
         f.write("Target box: %.2f in x %.2f in x %.2f in tall.\n" % (BOX_SHORT_IN, BOX_LONG_IN, BOX_HEIGHT_IN))
         f.write("Base-height allowance used in panel math: %.3f in per end.\n" % BOX_BASE_ALLOWANCE_IN)
-        f.write("Short face clear span: %.2f in = %d panels at %.2f in wide.\n" % (BOX_SHORT_IN - 2.0 * BOX_BASE_ALLOWANCE_IN, SHORT_COLUMNS, short_w))
-        f.write("Long face clear span: %.2f in = %d panels at %.2f in wide.\n" % (BOX_LONG_IN - 2.0 * BOX_BASE_ALLOWANCE_IN, LONG_COLUMNS, long_w))
+        f.write("Short face clear span: %.2f in = %d panels at %.2f in wide; two different short face sets are generated.\n" % (BOX_SHORT_IN - 2.0 * BOX_BASE_ALLOWANCE_IN, SHORT_COLUMNS, short_w))
+        f.write("Long face clear span: %.2f in = %d panels at %.2f in wide; print the long face set twice.\n" % (BOX_LONG_IN - 2.0 * BOX_BASE_ALLOWANCE_IN, LONG_COLUMNS, long_w))
         f.write("Wall height: %d rows at %.2f in high.\n\n" % (WALL_ROWS, PANEL_HEIGHT_IN))
-        f.write("Panel counts for one short face: %d panels; one long face: %d panels. Print two copies of each face set for a full box.\n" % (SHORT_COLUMNS * WALL_ROWS, LONG_COLUMNS * WALL_ROWS))
+        f.write("Panel counts: short A %d panels, short B %d panels, one long face %d panels. Print one short A, one short B, and two copies of the long face for a full box.\n" % (SHORT_COLUMNS * WALL_ROWS, SHORT_COLUMNS * WALL_ROWS, LONG_COLUMNS * WALL_ROWS))
         f.write("Corner posts: print %d four-inch post sections for four 12-inch corners; each post has a top tab and bottom socket for stacking.\n" % (4 * WALL_ROWS))
         horizontal_pairs = 2 * ((SHORT_COLUMNS - 1) * WALL_ROWS + (LONG_COLUMNS - 1) * WALL_ROWS)
         vertical_pairs = 2 * (SHORT_COLUMNS + LONG_COLUMNS) * (WALL_ROWS - 1)
         f.write("Straight seam connectors: about %d two-stud connectors for panel-to-panel seams if every socket pair is connected.\n\n" % ((horizontal_pairs + vertical_pairs) * 2))
-        f.write("Each panel folder contains shared beige/white/orange tube STLs plus two black base choices: solid and perforated.\n")
-        f.write("For a solid panel, import the solid black base and the three tube STLs. For an airflow panel, import the perforated black base and the same three tube STLs.\n")
-        f.write("PNG previews for the full short and long side layouts are in outputs/previews.\n\n")
+        f.write("Each panel folder contains clear/white/orange tube STLs as needed, plus two white base choices: solid and perforated.\n")
+        f.write("For a solid panel, import the solid white base and the available tube STLs. For an airflow panel, import the perforated white base and the same available tube STLs.\n")
+        f.write("Material-color and height-wave PNG previews for the full short and long side layouts are in outputs/previews.\n\n")
         for summary in summaries:
             f.write("%s: %d cells, %d airflow perforations, %d sampled body overlaps, %d top overlaps, %.2f mm minimum wall, %.1f%% top coverage.\n" % (summary["stem"], summary["cells"], summary["perforations"], summary["body_overlaps"], summary["top_overlaps"], summary["min_wall"], summary["coverage"] * 100.0))
-        f.write("\nBambu colors: color 1 black base, color 2 beige tubes, color 3 white tubes, color 4 orange tubes.\n")
-        f.write("Tube color frequencies: %.1f%% orange, %.1f%% white, %.1f%% beige.\n" % (ORANGE_FREQUENCY * 100.0, WHITE_FREQUENCY * 100.0, (1.0 - ORANGE_FREQUENCY - WHITE_FREQUENCY) * 100.0))
+        f.write("\nBambu colors: color 1 clear tubes, color 3 white base and tubes, color 4 orange tubes.\n")
+        f.write("Tube color frequencies: %.1f%% clear, %.1f%% orange, %.1f%% white.\n" % (CLEAR_FREQUENCY * 100.0, ORANGE_FREQUENCY * 100.0, (1.0 - CLEAR_FREQUENCY - ORANGE_FREQUENCY) * 100.0))
 
 
 def main():
