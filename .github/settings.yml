@@ -3,8 +3,8 @@ _extends: .github
 
 repository:
   name: orchidarium
-  description: Orchestration and scripts for publishing metrics from sensors in an orchidarium to InfluxDB for Grafana dashboards
-  homepage: https://github.com/tigerlilyobservatory/orchidarium
+  description: An extensible environmental control platform for maintaining atmospheric conditions in closed or confined spaces, terrariums, and aquariums.
+  homepage: https://tiger-lily-plants.com
   private: false
   topics: orchids, terrarium, sensors, python
 

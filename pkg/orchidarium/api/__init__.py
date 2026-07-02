@@ -1,0 +1,38 @@
+"""
+This module is responsible for the healthcheck API.
+"""
+
+
+import logging
+
+from flask import Flask
+from flask_cors import CORS
+
+
+# cli = sys.modules['flask.cli']
+# cli.show_server_banner = lambda *x: None  # type: ignore
+
+log = logging.getLogger(__name__)
+
+wz_log = logging.getLogger('werkzeug')
+wz_log.disabled = True
+
+app = Flask(__name__)
+CORS(app)
+
+log.debug(f'Set up CORS on app')
+
+
+__all__ = [
+    'app'
+]
+
+
+from orchidarium.api.health import create_healthcheck_api
+from orchidarium.api.queue import create_queue_api
+from orchidarium.api.sensors import create_sensor_api
+
+
+create_healthcheck_api(app)
+create_queue_api(app)
+create_sensor_api(app)
