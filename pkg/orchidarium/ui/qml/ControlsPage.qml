@@ -8,13 +8,35 @@ Item {
     property int relayCount: 4
     property var relayStates: []
     property var relayNameProvider: null
+    property bool relaysFrozen: false
+    property var frozenRelayStates: []
+    property var relayOverrideActive: []
+    property var relayRestoreStates: []
+    readonly property real relayContentOpacity: relaysFrozen ? 0.38 : 1.0
 
     signal relayStateChanged(int index, string state)
     signal renameRelayRequested(int index)
 
+    onRelayCountChanged: resetRelayOverrides()
+
     function refreshRelayModel() {
         relayRepeater.model = 0
         relayRepeater.model = root.relayCount
+    }
+
+    function resetRelayOverrides() {
+        root.relaysFrozen = false
+        root.frozenRelayStates = []
+        root.relayOverrideActive = Array(root.relayCount).fill(false)
+        root.relayRestoreStates = Array(root.relayCount).fill("auto")
+    }
+
+    function ensureRelayOverrideState() {
+        if (root.relayOverrideActive.length !== root.relayCount)
+            root.relayOverrideActive = Array(root.relayCount).fill(false)
+
+        if (root.relayRestoreStates.length !== root.relayCount)
+            root.relayRestoreStates = Array(root.relayCount).fill("auto")
     }
 
     function relayNameForIndex(i) {
@@ -53,6 +75,71 @@ Item {
         return "off"
     }
 
+    function clearRelayOverride(index) {
+        ensureRelayOverrideState()
+
+        let overrides = root.relayOverrideActive.slice()
+        let restoreStates = root.relayRestoreStates.slice()
+
+        overrides[index] = false
+        restoreStates[index] = "auto"
+
+        root.relayOverrideActive = overrides
+        root.relayRestoreStates = restoreStates
+    }
+
+    function toggleRelayOverride(index) {
+        if (root.relaysFrozen)
+            return
+
+        ensureRelayOverrideState()
+
+        let overrides = root.relayOverrideActive.slice()
+        let restoreStates = root.relayRestoreStates.slice()
+
+        if (overrides[index]) {
+            root.relayStateChanged(index, restoreStates[index])
+            overrides[index] = false
+            restoreStates[index] = "auto"
+        } else {
+            restoreStates[index] = root.relayStateForIndex(index)
+            overrides[index] = true
+            root.relayStateChanged(index, "off")
+        }
+
+        root.relayOverrideActive = overrides
+        root.relayRestoreStates = restoreStates
+    }
+
+    function setRelayFromSlider(index, value) {
+        clearRelayOverride(index)
+        root.relayStateChanged(index, root.stateForSliderValue(value))
+    }
+
+    function toggleRelayFreeze() {
+        if (root.relaysFrozen) {
+            for (let restoreIndex = 0; restoreIndex < root.relayCount; restoreIndex += 1)
+                root.relayStateChanged(restoreIndex, root.frozenRelayStates[restoreIndex] || "auto")
+
+            root.relaysFrozen = false
+            root.frozenRelayStates = []
+            resetRelayOverrides()
+            return
+        }
+
+        let frozenStates = []
+
+        for (let freezeIndex = 0; freezeIndex < root.relayCount; freezeIndex += 1)
+            frozenStates.push(root.relayStateForIndex(freezeIndex))
+
+        resetRelayOverrides()
+        root.frozenRelayStates = frozenStates
+        root.relaysFrozen = true
+
+        for (let offIndex = 0; offIndex < root.relayCount; offIndex += 1)
+            root.relayStateChanged(offIndex, "off")
+    }
+
     Rectangle {
         anchors.fill: parent
         color: "#ffffff"
@@ -68,7 +155,7 @@ Item {
             Text {
                 Layout.fillWidth: true
                 text: "Relay states"
-                color: "#222222"
+                color: root.relaysFrozen ? "#9a9a9a" : "#222222"
                 font.pixelSize: 28
                 font.bold: true
             }
@@ -97,14 +184,29 @@ Item {
                             color: root.relayStateForIndex(index) === "on" ? "#4CAF50"
                                  : root.relayStateForIndex(index) === "off" ? "#F44336"
                                  : "#9E9E9E"
+                            opacity: root.relayContentOpacity
 
                             border.color: "#333333"
                             border.width: 2
 
                             MouseArea {
+                                id: relayButtonMouseArea
+
+                                property bool renameRequested: false
+
                                 anchors.fill: parent
 
-                                onPressAndHold: root.renameRelayRequested(index)
+                                onPressed: renameRequested = false
+
+                                onClicked: {
+                                    if (!renameRequested)
+                                        root.toggleRelayOverride(index)
+                                }
+
+                                onPressAndHold: {
+                                    renameRequested = true
+                                    root.renameRelayRequested(index)
+                                }
                             }
 
                             Column {
@@ -154,6 +256,7 @@ Item {
                             to: 2
                             stepSize: 1
                             snapMode: Slider.SnapAlways
+                            enabled: !root.relaysFrozen
 
                             Component.onCompleted: value = root.sliderValueForState(currentRelayState)
 
@@ -164,11 +267,12 @@ Item {
                                     value = nextValue
                             }
 
-                            onMoved: root.relayStateChanged(index, root.stateForSliderValue(value))
+                            onMoved: root.setRelayFromSlider(index, value)
                         }
 
                         Row {
                             width: parent.width
+                            opacity: root.relayContentOpacity
 
                             Text {
                                 text: "ON"
@@ -199,6 +303,14 @@ Item {
                         }
                     }
                 }
+            }
+
+            Button {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 54
+                text: root.relaysFrozen ? "Resume Relays" : "Freeze Relays"
+
+                onClicked: root.toggleRelayFreeze()
             }
         }
     }
