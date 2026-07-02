@@ -1225,7 +1225,7 @@ def write_panel_preview(path, spec, cells, tiled=False):
             for col in range(cols):
                 ox = col * width
                 oy = row * height
-                f.write('<rect x="%.3f" y="%.3f" width="%.3f" height="%.3f" fill="%s" stroke="#6e5a48" stroke-width="0.45" stroke-opacity="0.55"/>\n' % (ox, oy, width, height, palette[1]))
+                f.write('<rect x="%.3f" y="%.3f" width="%.3f" height="%.3f" fill="%s" stroke="#6e5a48" stroke-width="0.45" stroke-opacity="0.55"/>\n' % (ox, oy, width, height, palette[3]))
                 for cell in sorted(cells, key=lambda item: item["height"]):
                     loop = cell["top_loop"]
                     inner = tile.inner_loop_from_outer(loop)
@@ -1260,7 +1260,7 @@ def build_panel(spec, perforated=False):
         combined.extend(mesh)
 
     stem = "%s_%s%s" % (PREFIX, spec["name"], "_perforated" if perforated else "")
-    base_mesh.write_ascii_stl(os.path.join(base.OUT_DIR, "%s_color_1_black_base.stl" % stem), "%s_color_1_black_base" % stem)
+    base_mesh.write_ascii_stl(os.path.join(base.OUT_DIR, "%s_color_3_white_base.stl" % stem), "%s_color_3_white_base" % stem)
     for color_number, label in ((2, "clear"), (3, "white"), (4, "orange")):
         if meshes[color_number].tris:
             meshes[color_number].write_ascii_stl(os.path.join(base.OUT_DIR, "%s_color_%d_%s.stl" % (stem, color_number, label)), "%s_color_%d_%s" % (stem, color_number, label))
@@ -1303,12 +1303,12 @@ def build_panel_from_cells(stem, cells, panel_width, panel_height, label=None, c
         tile.add_eroded_triangle_tube(tube_meshes[cell["color"]], cell)
 
     solid_base.write_ascii_stl(
-        os.path.join(panel_dir, "%s_base_solid_color_1_black.stl" % stem),
-        "%s_base_solid_color_1_black" % stem,
+        os.path.join(panel_dir, "%s_base_solid_color_3_white.stl" % stem),
+        "%s_base_solid_color_3_white" % stem,
     )
     perforated_base.write_ascii_stl(
-        os.path.join(panel_dir, "%s_base_perforated_color_1_black.stl" % stem),
-        "%s_base_perforated_color_1_black" % stem,
+        os.path.join(panel_dir, "%s_base_perforated_color_3_white.stl" % stem),
+        "%s_base_perforated_color_3_white" % stem,
     )
     for color_number, color_label in ((2, "clear"), (3, "white"), (4, "orange")):
         if tube_meshes[color_number].tris:
@@ -1347,7 +1347,7 @@ def write_face_preview(path, face, cells):
             % (-margin, -margin, width + margin * 2.0, height + margin * 2.0, pixel_width, pixel_height)
         )
         f.write('<rect x="%.3f" y="%.3f" width="%.3f" height="%.3f" fill="#f4f0e7"/>\n' % (-margin, -margin, width + margin * 2.0, height + margin * 2.0))
-        f.write('<rect x="0" y="0" width="%.3f" height="%.3f" fill="%s"/>\n' % (width, height, palette[1]))
+        f.write('<rect x="0" y="0" width="%.3f" height="%.3f" fill="%s"/>\n' % (width, height, palette[3]))
         for cell in sorted(cells, key=lambda item: item["height"]):
             loop = cell["top_loop"]
             inner = tile.inner_loop_from_outer(loop)
@@ -1611,7 +1611,7 @@ def write_readme(path, summaries):
         f.write("Tube body heights and lip contours follow two blended face-specific smooth waves from %.2f in to %.2f in; rim-wave jitter is disabled for the box-wall tubes.\n" % (BOX_TUBE_HEIGHT_MIN_IN, BOX_TUBE_HEIGHT_MAX_IN))
         f.write("Each panel has a small shallow back-side label such as S11 or L36; labels are not visible from the front.\n")
         f.write("Panel %s underside has a small centered recessed note: %s.\n" % (BOTTOM_NOTE_TILE_LABEL, BOTTOM_NOTE_TEXT))
-        f.write("Outer column panels include a black 45-degree corner filler lip; tube loops are clipped only at full-face outer edges, not at internal tile seams.\n")
+        f.write("Outer column panels include a white 45-degree corner filler lip; tube loops are clipped only at full-face outer edges, not at internal tile seams.\n")
         f.write("Target box: %.2f in x %.2f in x %.2f in tall.\n" % (BOX_SHORT_IN, BOX_LONG_IN, BOX_HEIGHT_IN))
         f.write("Base-height allowance used in panel math: %.3f in per end.\n" % BOX_BASE_ALLOWANCE_IN)
         f.write("Short face clear span: %.2f in = %d panels at %.2f in wide; two different short face sets are generated.\n" % (BOX_SHORT_IN - 2.0 * BOX_BASE_ALLOWANCE_IN, SHORT_COLUMNS, short_w))
@@ -1622,12 +1622,12 @@ def write_readme(path, summaries):
         horizontal_pairs = 2 * ((SHORT_COLUMNS - 1) * WALL_ROWS + (LONG_COLUMNS - 1) * WALL_ROWS)
         vertical_pairs = 2 * (SHORT_COLUMNS + LONG_COLUMNS) * (WALL_ROWS - 1)
         f.write("Straight seam connectors: about %d two-stud connectors for panel-to-panel seams if every socket pair is connected.\n\n" % ((horizontal_pairs + vertical_pairs) * 2))
-        f.write("Each panel folder contains clear/white/orange tube STLs as needed, plus two black base choices: solid and perforated.\n")
-        f.write("For a solid panel, import the solid black base and the available tube STLs. For an airflow panel, import the perforated black base and the same available tube STLs.\n")
+        f.write("Each panel folder contains clear/white/orange tube STLs as needed, plus two white base choices: solid and perforated.\n")
+        f.write("For a solid panel, import the solid white base and the available tube STLs. For an airflow panel, import the perforated white base and the same available tube STLs.\n")
         f.write("Material-color and height-wave PNG previews for the full short and long side layouts are in outputs/previews.\n\n")
         for summary in summaries:
             f.write("%s: %d cells, %d airflow perforations, %d sampled body overlaps, %d top overlaps, %.2f mm minimum wall, %.1f%% top coverage.\n" % (summary["stem"], summary["cells"], summary["perforations"], summary["body_overlaps"], summary["top_overlaps"], summary["min_wall"], summary["coverage"] * 100.0))
-        f.write("\nBambu colors: color 1 black base, color 2 clear tubes, color 3 white tubes, color 4 orange tubes.\n")
+        f.write("\nBambu colors: color 1 black, color 2 clear tubes, color 3 white base and tubes, color 4 orange tubes.\n")
         f.write("Tube color frequencies: %.1f%% clear, %.1f%% orange, %.1f%% white.\n" % (CLEAR_FREQUENCY * 100.0, ORANGE_FREQUENCY * 100.0, (1.0 - CLEAR_FREQUENCY - ORANGE_FREQUENCY) * 100.0))
 
 

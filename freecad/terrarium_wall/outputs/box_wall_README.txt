@@ -5,7 +5,7 @@ Panel surface algorithm: one full-face Delaunay triangle field for each box side
 Tube body heights and lip contours follow two blended face-specific smooth waves from 0.50 in to 1.50 in; rim-wave jitter is disabled for the box-wall tubes.
 Each panel has a small shallow back-side label such as S11 or L36; labels are not visible from the front.
 Panel A11 underside has a small centered recessed note: willow <3 emma.
-Outer column panels include a black 45-degree corner filler lip; tube loops are clipped only at full-face outer edges, not at internal tile seams.
+Outer column panels include a white 45-degree corner filler lip; tube loops are clipped only at full-face outer edges, not at internal tile seams.
 Target box: 14.75 in x 26.75 in x 12.00 in tall.
 Base-height allowance used in panel math: 0.167 in per end.
 Short face clear span: 14.42 in = 3 panels at 4.81 in wide; two different short face sets are generated.
@@ -16,8 +16,8 @@ Panel counts: short A 9 panels, short B 9 panels, one long face 18 panels. Print
 Corner posts: print 12 four-inch post sections for four 12-inch corners; each post has a top tab and bottom socket for stacking.
 Straight seam connectors: about 156 two-stud connectors for panel-to-panel seams if every socket pair is connected.
 
-Each panel folder contains clear/white/orange tube STLs as needed, plus two black base choices: solid and perforated.
-For a solid panel, import the solid black base and the available tube STLs. For an airflow panel, import the perforated black base and the same available tube STLs.
+Each panel folder contains clear/white/orange tube STLs as needed, plus two white base choices: solid and perforated.
+For a solid panel, import the solid white base and the available tube STLs. For an airflow panel, import the perforated white base and the same available tube STLs.
 Material-color and height-wave PNG previews for the full short and long side layouts are in outputs/previews.
 
 box_wall_short_a_r1_c1: 30 cells, 156 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 80.2% top coverage.
@@ -57,5 +57,5 @@ box_wall_long_r3_c4: 31 cells, 163 airflow perforations, 0 sampled body overlaps
 box_wall_long_r3_c5: 31 cells, 164 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 74.5% top coverage.
 box_wall_long_r3_c6: 26 cells, 184 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 82.3% top coverage.
 
-Bambu colors: color 1 black base, color 2 clear tubes, color 3 white tubes, color 4 orange tubes.
+Bambu colors: color 1 black, color 2 clear tubes, color 3 white base and tubes, color 4 orange tubes.
 Tube color frequencies: 60.0% clear, 10.0% orange, 30.0% white.
