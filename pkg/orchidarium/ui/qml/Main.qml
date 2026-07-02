@@ -1,9 +1,10 @@
 import QtQuick
 import QtQuick.Window
 import QtQuick.Controls
-import QtQuick.Layouts
 
 Window {
+    id: root
+
     width: 720
     height: 1280
     visible: true
@@ -21,17 +22,13 @@ Window {
     readonly property int relayCount: hasConfig ? config.relayCount : defaultConfig.relayCount
     readonly property string intervalSeconds: hasConfig ? config.intervalSeconds : defaultConfig.intervalSeconds
     readonly property string maxPointBacklog: hasConfig ? config.maxPointBacklog : defaultConfig.maxPointBacklog
-    property string intervalInputValue: intervalSeconds
-    property string maxPointBacklogInputValue: maxPointBacklog
-
-    visibility: fullscreenEnabled ? Window.FullScreen : Window.Windowed
 
     property var relayStates: []
 
+    visibility: fullscreenEnabled ? Window.FullScreen : Window.Windowed
+
     Component.onCompleted: {
         relayStates = Array(relayCount).fill("auto")
-        intervalInputValue = intervalSeconds
-        maxPointBacklogInputValue = maxPointBacklog
     }
 
     onRelayCountChanged: {
@@ -41,6 +38,7 @@ Window {
     function relayNameForIndex(i) {
         if (hasConfig && config.relayName)
             return config.relayName(i)
+
         return "Relay " + (i + 1)
     }
 
@@ -56,395 +54,96 @@ Window {
         relayStates = updated
     }
 
-    function sliderValueForState(state) {
-        if (state === "on")
-            return 0
-        if (state === "auto")
-            return 1
-        return 2
-    }
-
-    function stateForSliderValue(value) {
-        if (value < 0.5)
-            return "on"
-        if (value < 1.5)
-            return "auto"
-        return "off"
-    }
-
-    function normalizeIntegerText(value, minimum, fallback) {
-        let textValue = String(value).trim()
-
-        if (!/^[0-9]+$/.test(textValue))
-            return fallback
-
-        return String(Math.max(minimum, Number(textValue)))
-    }
-
-    function commitIntervalInput() {
-        intervalInputValue = normalizeIntegerText(intervalInputValue, 5, intervalSeconds)
-
+    function setIntervalSeconds(value) {
         if (hasConfig && config.setIntervalSeconds) {
-            config.setIntervalSeconds(intervalInputValue)
-            intervalInputValue = config.intervalSeconds
+            config.setIntervalSeconds(value)
+            settingsPage.intervalInputValue = config.intervalSeconds
         }
     }
 
-    function commitMaxPointBacklogInput() {
-        maxPointBacklogInputValue = normalizeIntegerText(maxPointBacklogInputValue, 0, maxPointBacklog)
-
+    function setMaxPointBacklog(value) {
         if (hasConfig && config.setMaxPointBacklog) {
-            config.setMaxPointBacklog(maxPointBacklogInputValue)
-            maxPointBacklogInputValue = config.maxPointBacklog
+            config.setMaxPointBacklog(value)
+            settingsPage.maxPointBacklogInputValue = config.maxPointBacklog
         }
     }
 
     function showPage(index) {
         swipeView.currentIndex = index
-        navigationDrawer.close()
     }
 
     Connections {
         target: hasConfig ? config : null
 
         function onRelayNamesChanged() {
-            relayRepeater.model = 0
-            relayRepeater.model = relayCount
+            controlsPage.refreshRelayModel()
         }
 
         function onRelayCountChanged() {
-            relayRepeater.model = 0
-            relayRepeater.model = relayCount
+            controlsPage.refreshRelayModel()
             relayStates = Array(relayCount).fill("auto")
         }
 
         function onIntervalSecondsChanged() {
-            intervalInputValue = config.intervalSeconds
+            settingsPage.intervalInputValue = config.intervalSeconds
         }
 
         function onMaxPointBacklogChanged() {
-            maxPointBacklogInputValue = config.maxPointBacklog
+            settingsPage.maxPointBacklogInputValue = config.maxPointBacklog
         }
     }
 
     SwipeView {
         id: swipeView
+
         anchors.fill: parent
 
-        Item {
-            Row {
-                anchors.fill: parent
-                anchors.leftMargin: 20
-                anchors.rightMargin: 20
-                anchors.topMargin: 76
-                anchors.bottomMargin: 20
-                spacing: 10
+        ControlsPage {
+            id: controlsPage
 
-                Repeater {
-                    id: relayRepeater
-                    model: relayCount
+            relayCount: root.relayCount
+            relayStates: root.relayStates
+            relayNameProvider: root.relayNameForIndex
 
-                    delegate: Column {
-                        required property int index
+            onRelayStateChanged: function(index, state) {
+                root.setRelayState(index, state)
+            }
 
-                        width: (parent.width - ((relayCount - 1) * 10)) / relayCount
-                        spacing: 12
-
-                        Rectangle {
-                            width: parent.width
-                            height: 120
-                            radius: 12
-
-                            color: relayStates[index] === "on" ? "#4CAF50"
-                                 : relayStates[index] === "off" ? "#F44336"
-                                 : "#9E9E9E"
-
-                            border.color: "#333333"
-                            border.width: 2
-
-                            MouseArea {
-                                anchors.fill: parent
-                                onPressAndHold: {
-                                    renamePopup.relayIndex = index
-                                    renamePopup.open()
-                                }
-                            }
-
-                            Column {
-                                anchors.fill: parent
-                                anchors.margins: 8
-                                spacing: 6
-
-                                Text {
-                                    width: parent.width
-                                    height: (parent.height - 6) / 2
-                                    text: relayNameForIndex(index)
-                                    color: "white"
-                                    font.bold: true
-                                    font.pixelSize: 22
-                                    minimumPixelSize: 6
-                                    fontSizeMode: Text.Fit
-                                    horizontalAlignment: Text.AlignHCenter
-                                    verticalAlignment: Text.AlignVCenter
-                                    wrapMode: Text.NoWrap
-                                    elide: Text.ElideRight
-                                }
-
-                                Text {
-                                    width: parent.width
-                                    height: (parent.height - 6) / 2
-                                    text: relayStates[index].toUpperCase()
-                                    color: "white"
-                                    font.bold: true
-                                    font.pixelSize: 28
-                                    minimumPixelSize: 6
-                                    fontSizeMode: Text.Fit
-                                    horizontalAlignment: Text.AlignHCenter
-                                    verticalAlignment: Text.AlignVCenter
-                                    wrapMode: Text.NoWrap
-                                    elide: Text.ElideRight
-                                }
-                            }
-                        }
-
-                        Slider {
-                            id: relaySlider
-
-                            property string currentRelayState: relayStates[index]
-
-                            width: parent.width
-                            from: 0
-                            to: 2
-                            stepSize: 1
-                            snapMode: Slider.SnapAlways
-
-                            Component.onCompleted: value = sliderValueForState(currentRelayState)
-
-                            onCurrentRelayStateChanged: {
-                                let nextValue = sliderValueForState(currentRelayState)
-                                if (value !== nextValue)
-                                    value = nextValue
-                            }
-
-                            onMoved: setRelayState(index, stateForSliderValue(value))
-                        }
-
-                        Row {
-                            width: parent.width
-
-                            Text {
-                                text: "ON"
-                                width: parent.width / 3
-                                horizontalAlignment: Text.AlignLeft
-                                color: "#333333"
-                                font.pixelSize: 9
-                                font.bold: true
-                            }
-
-                            Text {
-                                text: "AUTO"
-                                width: parent.width / 3
-                                horizontalAlignment: Text.AlignHCenter
-                                color: "#333333"
-                                font.pixelSize: 9
-                                font.bold: true
-                            }
-
-                            Text {
-                                text: "OFF"
-                                width: parent.width / 3
-                                horizontalAlignment: Text.AlignRight
-                                color: "#333333"
-                                font.pixelSize: 9
-                                font.bold: true
-                            }
-                        }
-                    }
-                }
+            onRenameRelayRequested: function(index) {
+                renamePopup.relayIndex = index
+                renamePopup.open()
             }
         }
 
-        Item {
-            Rectangle {
-                anchors.fill: parent
-                color: "#eeeeee"
+        SettingsPage {
+            id: settingsPage
 
-                ColumnLayout {
-                    anchors.fill: parent
-                    anchors.leftMargin: 28
-                    anchors.rightMargin: 28
-                    anchors.topMargin: 76
-                    anchors.bottomMargin: 28
-                    spacing: 18
+            intervalSeconds: root.intervalSeconds
+            maxPointBacklog: root.maxPointBacklog
 
-                    Text {
-                        Layout.fillWidth: true
-                        text: "Settings"
-                        color: "#222222"
-                        font.pixelSize: 28
-                        font.bold: true
-                    }
+            onIntervalCommitted: function(value) {
+                root.setIntervalSeconds(value)
+            }
 
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        spacing: 8
-
-                        Text {
-                            Layout.fillWidth: true
-                            text: "Collection interval (s)"
-                            color: "#333333"
-                            font.pixelSize: 16
-                            font.bold: true
-                        }
-
-                        TextField {
-                            id: intervalInput
-                            Layout.fillWidth: true
-                            text: intervalInputValue
-                            placeholderText: "Seconds"
-                            inputMethodHints: Qt.ImhDigitsOnly
-                            validator: IntValidator { bottom: 5 }
-                            selectByMouse: true
-
-                            onTextEdited: intervalInputValue = text
-                            onEditingFinished: commitIntervalInput()
-                            Keys.onReturnPressed: commitIntervalInput()
-                        }
-                    }
-
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        spacing: 8
-
-                        Text {
-                            Layout.fillWidth: true
-                            text: "Max point backlog"
-                            color: "#333333"
-                            font.pixelSize: 16
-                            font.bold: true
-                        }
-
-                        TextField {
-                            id: maxPointBacklogInput
-                            Layout.fillWidth: true
-                            text: maxPointBacklogInputValue
-                            placeholderText: "0 means infinite"
-                            inputMethodHints: Qt.ImhDigitsOnly
-                            validator: IntValidator { bottom: 0 }
-                            selectByMouse: true
-
-                            onTextEdited: maxPointBacklogInputValue = text
-                            onEditingFinished: commitMaxPointBacklogInput()
-                            Keys.onReturnPressed: commitMaxPointBacklogInput()
-                        }
-                    }
-
-                    Item {
-                        Layout.fillHeight: true
-                    }
-                }
+            onMaxPointBacklogCommitted: function(value) {
+                root.setMaxPointBacklog(value)
             }
         }
     }
 
-    ToolButton {
-        id: menuButton
-        z: 10
-        width: 52
-        height: 52
-        anchors.left: parent.left
-        anchors.top: parent.top
-        anchors.margins: 12
-        display: AbstractButton.IconOnly
-        ToolTip.visible: hovered
-        ToolTip.text: "Menu"
-
-        background: Rectangle {
-            color: menuButton.down ? "#d8d8d8"
-                 : menuButton.hovered ? "#eeeeee"
-                 : "#ffffff"
-            radius: 4
-            border.color: "#c7c7c7"
-            border.width: 1
-        }
-
-        contentItem: Item {
-            implicitWidth: 24
-            implicitHeight: 24
-
-            Column {
-                anchors.centerIn: parent
-                spacing: 5
-
-                Repeater {
-                    model: 3
-
-                    Rectangle {
-                        width: 24
-                        height: 3
-                        radius: 1.5
-                        color: "#222222"
-                    }
-                }
-            }
-        }
-
-        onClicked: navigationDrawer.open()
-    }
-
-    Drawer {
+    NavigationDrawer {
         id: navigationDrawer
-        z: 20
-        width: Math.min(parent.width * 0.72, 280)
-        height: parent.height
-        edge: Qt.LeftEdge
-        modal: true
-        interactive: true
 
-        background: Rectangle {
-            color: "#ffffff"
-        }
+        anchors.fill: parent
+        currentIndex: swipeView.currentIndex
 
-        ColumnLayout {
-            anchors.fill: parent
-            anchors.margins: 16
-            spacing: 8
-
-            Item {
-                Layout.fillWidth: true
-                Layout.preferredHeight: 18
-            }
-
-            Text {
-                Layout.fillWidth: true
-                text: "Orchidarium"
-                color: "#222222"
-                font.pixelSize: 22
-                font.bold: true
-            }
-
-            ItemDelegate {
-                Layout.fillWidth: true
-                text: "Controls"
-                highlighted: swipeView.currentIndex === 0
-                onClicked: showPage(0)
-            }
-
-            ItemDelegate {
-                Layout.fillWidth: true
-                text: "Settings"
-                highlighted: swipeView.currentIndex === 1
-                onClicked: showPage(1)
-            }
-
-            Item {
-                Layout.fillHeight: true
-            }
-        }
+        onControlsRequested: root.showPage(0)
+        onSettingsRequested: root.showPage(1)
     }
 
     Popup {
         id: renamePopup
+
         modal: true
         focus: true
         anchors.centerIn: parent
@@ -453,23 +152,23 @@ Window {
 
         property int relayIndex: -1
 
-        // 👇 catches clicks outside content
         background: Rectangle {
-            color: "#80000000" // semi-transparent dark overlay
+            color: "#80000000"
 
             MouseArea {
                 anchors.fill: parent
+
                 onClicked: {
                     if (renamePopup.relayIndex >= 0) {
                         renameRelay(renamePopup.relayIndex, nameInput.text)
                     }
+
                     nameInput.focus = false
                     renamePopup.close()
                 }
             }
         }
 
-        // 👇 actual popup content
         contentItem: Rectangle {
             anchors.centerIn: parent
             width: 300
@@ -490,6 +189,7 @@ Window {
 
                 TextField {
                     id: nameInput
+
                     placeholderText: "Enter name"
                 }
 
@@ -499,6 +199,7 @@ Window {
 
                     Button {
                         text: "Cancel"
+
                         onClicked: {
                             nameInput.focus = false
                             renamePopup.close()
@@ -507,10 +208,12 @@ Window {
 
                     Button {
                         text: "Save"
+
                         onClicked: {
                             if (renamePopup.relayIndex >= 0) {
                                 renameRelay(renamePopup.relayIndex, nameInput.text)
                             }
+
                             nameInput.focus = false
                             renamePopup.close()
                         }

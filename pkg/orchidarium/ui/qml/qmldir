@@ -1,3 +1,6 @@
 module ui
 
+ControlsPage 1.0 ControlsPage.qml
 Main 1.0 Main.qml
+NavigationDrawer 1.0 NavigationDrawer.qml
+SettingsPage 1.0 SettingsPage.qml
