@@ -223,6 +223,7 @@ Item {
                     selectByMouse: true
 
                     Keys.onReturnPressed: root.commitEditPopup()
+                    Keys.onEnterPressed: root.commitEditPopup()
                 }
 
                 RowLayout {
@@ -242,7 +243,7 @@ Item {
 
                     Button {
                         Layout.preferredWidth: 92
-                        text: "Save"
+                        text: "OK"
 
                         onClicked: root.commitEditPopup()
                     }

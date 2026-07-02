@@ -185,7 +185,7 @@ Item {
 
             Row {
                 Layout.fillWidth: true
-                Layout.fillHeight: true
+                Layout.preferredHeight: 260
                 spacing: 10
 
                 Repeater {
@@ -343,6 +343,8 @@ Item {
                         Button {
                             width: parent.width
                             height: 36
+                            enabled: !root.relaysFrozen
+                            opacity: root.relayContentOpacity
                             text: "Edit"
 
                             onClicked: root.renameRelayRequested(index)
@@ -351,12 +353,24 @@ Item {
                 }
             }
 
+            Text {
+                Layout.fillWidth: true
+                text: "Freeze"
+                color: "#333333"
+                font.pixelSize: 15
+                font.bold: true
+            }
+
             Button {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 54
                 text: root.relaysFrozen ? "Resume Relays" : "Freeze Relays"
 
                 onClicked: root.toggleRelayFreeze()
+            }
+
+            Item {
+                Layout.fillHeight: true
             }
         }
     }

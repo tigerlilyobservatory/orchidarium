@@ -55,6 +55,14 @@ Window {
         }
     }
 
+    function commitRelayRename() {
+        if (renamePopup.relayIndex >= 0)
+            renameRelay(renamePopup.relayIndex, nameInput.text)
+
+        nameInput.focus = false
+        renamePopup.close()
+    }
+
     function setRelayState(i, state) {
         let updated = relayStates.slice()
         updated[i] = state
@@ -171,12 +179,7 @@ Window {
                 anchors.fill: parent
 
                 onClicked: {
-                    if (renamePopup.relayIndex >= 0) {
-                        renameRelay(renamePopup.relayIndex, nameInput.text)
-                    }
-
-                    nameInput.focus = false
-                    renamePopup.close()
+                    root.commitRelayRename()
                 }
             }
         }
@@ -204,6 +207,9 @@ Window {
 
                     placeholderText: "Enter name"
                     maximumLength: 10
+
+                    Keys.onReturnPressed: root.commitRelayRename()
+                    Keys.onEnterPressed: root.commitRelayRename()
                 }
 
                 Row {
@@ -220,15 +226,10 @@ Window {
                     }
 
                     Button {
-                        text: "Save"
+                        text: "OK"
 
                         onClicked: {
-                            if (renamePopup.relayIndex >= 0) {
-                                renameRelay(renamePopup.relayIndex, nameInput.text)
-                            }
-
-                            nameInput.focus = false
-                            renamePopup.close()
+                            root.commitRelayRename()
                         }
                     }
                 }
