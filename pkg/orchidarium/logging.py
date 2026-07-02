@@ -24,6 +24,7 @@ _BANNER: Final[str] = r"""
   \___/|_|  \___|_| |_|_|\__,_|\__,_|_|  |_|\__,_|_| |_| |_|
 
                     Tiger Lily Plants LLC.
+                  https://tiger-lily-plants.com
 """
 
 
