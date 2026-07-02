@@ -11,8 +11,10 @@
   - [Motivation](#motivation)
   - [Documentation](#documentation)
     - [Runtime Hierarchy](#runtime-hierarchy)
+    - [Metrics Queue Fanout](#metrics-queue-fanout)
   - [Development](#development)
     - [Docker Compose](#docker-compose)
+      - [Raspberry Pi Wi-Fi / SSH](#raspberry-pi-wi-fi--ssh)
       - [UI Display](#ui-display)
 
 ## About
@@ -51,7 +53,7 @@ tini
 └── orchidarium
     ├── metrics / orchidarium-metrics
     │   ├── metrics main thread
-    │   │   ├── metrics queue fanout
+    │   │   ├── publisher queue registry / fanout
     │   │   ├── sensor collection interval loop
     │   │   ├── sensor ThreadPoolExecutor
     │   │   │   └── sensor_* worker thread(s)
@@ -71,25 +73,58 @@ tini
 
 - `orchidarium command`: CLI entrypoint in `orchidarium.entrypoint`; calls `orchidarium.daemon.run()`.
 - `orchidarium`: supervisor process title; starts child processes with `ProcessPoolExecutor` from `orchidarium.daemon._processes`.
-- `metrics`: child process spec; process title is `orchidarium-metrics`; owns metrics queue fanout, sensor collection, and database publication.
+- `metrics`: child process spec; process title is `orchidarium-metrics`; owns the publisher queue registry, sensor collection, and database publication.
 - `api`: child process spec; process title is `orchidarium-api`; serves Flask API endpoints using runtime snapshots published by the metrics process.
 - `hardware`: child process spec; process title is `orchidarium-hardware`; currently an idle scaffold for relay and device control. It publishes a heartbeat used by `/health` and `/ready`.
 - `ui`: child process spec; process title is `orchidarium-ui`; runs the Qt/QML control surface from `orchidarium.ui`.
 - `sensor_*`: worker threads created by the metrics process during each collection interval, with one submitted task per discovered sensor.
 - `publisher_*`: worker threads created only for publisher queues with backlog, with one queue per database backend.
 
-Each publisher has its own queue. Sensors publish each collected metric datum into every publisher queue, and each publisher is responsible for draining only its backend-specific queue.
-
 `/ready` fails when any publisher queue backlog reaches `MAX_POINT_BACKLOG`, so schedulers can stop sending new work to a container that is falling behind.
+
+### Metrics Queue Fanout
+
+The metrics process treats sensors as producers and publishers as consumers. The object named `metric_queues` in `orchidarium.data.queue` is the fanout point between those two sides.
+
+```text
+sensor thread(s)
+    └── Sensor.publish(metric_queues)
+        └── DataQueueRegistry.append(MetricDatum)
+            ├── DataQueue("influxdb").append(MetricDatum)
+            ├── DataQueue("<future publisher>").append(MetricDatum)
+            └── DataQueue("<future publisher>").append(MetricDatum)
+
+publisher thread(s)
+    ├── InfluxDBPublisher.publish(DataQueue("influxdb"))
+    ├── <FuturePublisher>.publish(DataQueue("<future publisher>"))
+    └── <FuturePublisher>.publish(DataQueue("<future publisher>"))
+```
+
+- `PUBLISHER_SPECS` in `orchidarium.daemon.metrics` declares every metrics backend. Each spec registers one queue in `metric_queues`.
+- Sensor workers receive `metric_queues` as a `MetricQueueSink`. They do not choose a database backend.
+- A sensor creates one `MetricDatum` and calls `append()`. Because the sink is a `DataQueueRegistry`, that single append copies the datum into every registered publisher queue.
+- Each publisher drains only its own queue. This keeps a fast backend from consuming points intended for a slower or failing backend.
+- Publisher threads are created only for queues with backlog. Empty queues do not spawn publisher workers for that interval.
+- If a publisher pulls a datum and submission fails, the base `Publisher.publish()` method puts that datum back on the same publisher queue before raising.
+- Queue activity is sampled per queue for a one-hour rolling window. The API reads the latest metrics-process snapshot via `/queue/backlog`.
+- `current_backlog` is the largest single publisher backlog. `total_current_backlog` is the sum of all publisher backlogs.
+- `/ready` compares `current_backlog` to `MAX_POINT_BACKLOG`; readiness fails when any single publisher queue is too far behind.
+- The queues are in-memory and local to the metrics process. Runtime state is snapshotted for the API process, but queued points themselves are not durable across a process restart.
 
 ## Development
 
 ### Docker Compose
 
-Start the local stack. This installs and reloads the Orchidarium udev rules when udev is available, sources [`scripts/.env.sh`](./scripts/.env.sh), generates the self-signed Grafana certificates if they do not already exist, then runs `docker compose up -d --build`.
+Start the local core stack. This installs and reloads the Orchidarium udev rules when udev is available, sources [`scripts/.env.sh`](./scripts/.env.sh), generates the self-signed Grafana certificates if they do not already exist, then runs `docker compose up -d --build`. The default profile starts Orchidarium and InfluxDB.
 
    ```text
    ./scripts/local/up.sh
+   ```
+
+Start Grafana and MySQL as well when the dashboard stack is needed:
+
+   ```text
+   COMPOSE_PROFILES=dashboard ./scripts/local/up.sh
    ```
 
 Stop the local stack. This runs `docker compose down`, removes the Orchidarium udev rules when udev is available, then reloads udev.
@@ -97,6 +132,23 @@ Stop the local stack. This runs `docker compose down`, removes the Orchidarium u
    ```text
    ./scripts/local/down.sh
    ```
+
+#### Raspberry Pi Wi-Fi / SSH
+
+The Docker network uses `ORCHIDARIUM_DOCKER_SUBNET`, defaulting to `172.31.240.0/24`, instead of letting Docker choose a bridge subnet. If the Pi becomes unreachable over SSH after `docker compose up`, check that this subnet does not overlap the Wi-Fi LAN:
+
+   ```text
+   ip route
+   docker network inspect orchidarium-control
+   ```
+
+If it overlaps, choose a private subnet that is not used by Wi-Fi, VPN, or other Docker networks:
+
+   ```text
+   ORCHIDARIUM_DOCKER_SUBNET=172.31.241.0/24 ./scripts/local/up.sh
+   ```
+
+InfluxDB and MySQL use persistent Docker volumes instead of tmpfs by default, and Grafana/MySQL are behind the `dashboard` profile to keep the Raspberry Pi responsive enough for SSH during normal controller runs.
 
 #### UI Display
 

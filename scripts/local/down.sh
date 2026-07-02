@@ -67,6 +67,7 @@ _set_default_environment()
     export MYSQL_PASSWORD="${MYSQL_PASSWORD:-}"
     export MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD:-}"
     export MYSQL_USER="${MYSQL_USER:-}"
+    export ORCHIDARIUM_DOCKER_SUBNET="${ORCHIDARIUM_DOCKER_SUBNET:-172.31.240.0/24}"
     export ORCHIDARIUM_GID="${ORCHIDARIUM_GID:-$(id -g)}"
     export ORCHIDARIUM_HOME="${ORCHIDARIUM_HOME:-/tmp/orchidarium}"
     export ORCHIDARIUM_RUNTIME_DIR="${ORCHIDARIUM_RUNTIME_DIR:-/tmp/orchidarium}"
