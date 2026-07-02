@@ -35,8 +35,40 @@ def create_queue_api(app: Flask) -> None:
         """
         Return queue backlog and rolling activity summary.
 
+        The response is the latest metrics-process queue summary snapshot. It reports aggregate backlog across
+        all publisher queues, plus a per-publisher breakdown keyed by publisher name.
+
         Returns:
-            ResponseReturnValue: an object with queue backlog metadata.
+            ResponseReturnValue: JSON payload and HTTP 200 status. The payload has schema like
+
+            {
+                "current_backlog": 0,
+                "total_current_backlog": 0,
+                "publisher_count": 1,
+                "window_seconds": 3600,
+                "sample_count": 0,
+                "min_queue_length": 0,
+                "max_queue_length": 0,
+                "average_queue_length": 0.0,
+                "enqueued": 0,
+                "dequeued": 0,
+                "last_enqueued_at": "ISO-8601 timestamp | null",
+                "last_dequeued_at": "ISO-8601 timestamp | null",
+                "queues": {
+                    "influxdb": {
+                        "current_backlog": 0,
+                        "window_seconds": 3600,
+                        "sample_count": 0,
+                        "min_queue_length": 0,
+                        "max_queue_length": 0,
+                        "average_queue_length": 0.0,
+                        "enqueued": 0,
+                        "dequeued": 0,
+                        "last_enqueued_at": "ISO-8601 timestamp | null",
+                        "last_dequeued_at": "ISO-8601 timestamp | null"
+                    }
+                }
+            }
         """
         return (
             get_queue_summary(),

@@ -11,6 +11,7 @@
   - [Motivation](#motivation)
   - [Documentation](#documentation)
     - [Runtime Hierarchy](#runtime-hierarchy)
+    - [API](#api)
     - [Metrics Queue Fanout](#metrics-queue-fanout)
   - [Development](#development)
     - [Docker Compose](#docker-compose)
@@ -62,6 +63,7 @@ tini
     ├── api / orchidarium-api
     │   └── Flask main thread
     │       ├── /health
+    │       ├── /openapi.json
     │       ├── /ready
     │       ├── /queue/backlog
     │       └── /sensors/active
@@ -81,6 +83,159 @@ tini
 - `publisher_*`: worker threads created only for publisher queues with backlog, with one queue per database backend.
 
 `/ready` fails when any publisher queue backlog reaches `MAX_POINT_BACKLOG`, so schedulers can stop sending new work to a container that is falling behind.
+
+### API
+
+The API process serves JSON from the Flask app in `orchidarium.api`. In Docker Compose, it is exposed on `127.0.0.1:8085` by default.
+
+<details>
+<summary>See more: GET /openapi.json</summary>
+
+Returns the generated OpenAPI 3.1 specification for the Flask API. The document is generated with `python-openapi` from the typed response schemas in `orchidarium.api.schemas`.
+
+```json
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Orchidarium API",
+    "version": "0.0.1"
+  },
+  "paths": {
+    "/health": {},
+    "/ready": {},
+    "/queue/backlog": {},
+    "/sensors/active": {},
+    "/openapi.json": {}
+  }
+}
+```
+
+</details>
+
+<details>
+<summary>See more: GET /health</summary>
+
+Reports liveness for the running controller. The endpoint returns HTTP 200 when the metrics thread pool is running or healthy, the hardware process has a recent heartbeat, and no sensor workers have failed. It returns HTTP 503 with the same payload shape when liveness fails.
+
+`point_backlog` is included for debugging context, but backlog readiness does not decide the `/health` status.
+
+```json
+{
+  "status": "OK",
+  "hardware_process": {
+    "status": "healthy",
+    "process_name": "hardware",
+    "last_heartbeat_at": "2026-07-02T12:00:00+00:00",
+    "heartbeat_timeout_seconds": 5.0,
+    "heartbeat_age_seconds": 0.25,
+    "last_error": null
+  },
+  "point_backlog": {
+    "current_backlog": 0,
+    "max_point_backlog": 1000,
+    "ready": true
+  },
+  "thread_pool": {
+    "status": "healthy",
+    "expected_workers": 3,
+    "completed_workers": 3,
+    "failed_workers": 0,
+    "last_run_successful": true,
+    "successful_runs": 42,
+    "last_error": null
+  }
+}
+```
+
+</details>
+
+<details>
+<summary>See more: GET /ready</summary>
+
+Reports scheduler readiness for the running controller. The endpoint returns HTTP 200 only when the metrics thread pool is ready, the hardware process has a recent heartbeat, and the largest publisher queue backlog is below `MAX_POINT_BACKLOG`. It returns HTTP 503 with the same payload shape when readiness fails.
+
+```json
+{
+  "status": "OK",
+  "hardware_process": {
+    "status": "healthy",
+    "process_name": "hardware",
+    "last_heartbeat_at": "2026-07-02T12:00:00+00:00",
+    "heartbeat_timeout_seconds": 5.0,
+    "heartbeat_age_seconds": 0.25,
+    "last_error": null
+  },
+  "point_backlog": {
+    "current_backlog": 0,
+    "max_point_backlog": 1000,
+    "ready": true
+  },
+  "thread_pool": {
+    "status": "healthy",
+    "expected_workers": 3,
+    "completed_workers": 3,
+    "failed_workers": 0,
+    "last_run_successful": true,
+    "successful_runs": 42,
+    "last_error": null
+  }
+}
+```
+
+</details>
+
+<details>
+<summary>See more: GET /queue/backlog</summary>
+
+Returns the latest queue activity snapshot published by the metrics process. Top-level fields summarize all publisher queues. The `queues` object is keyed by publisher name, so keys such as `influxdb` are dynamic as publishers are added.
+
+`current_backlog` is the largest single publisher backlog. `total_current_backlog` is the sum of all publisher backlogs.
+
+```json
+{
+  "current_backlog": 0,
+  "total_current_backlog": 0,
+  "publisher_count": 1,
+  "window_seconds": 3600,
+  "sample_count": 12,
+  "min_queue_length": 0,
+  "max_queue_length": 4,
+  "average_queue_length": 0.5,
+  "enqueued": 6,
+  "dequeued": 6,
+  "last_enqueued_at": "2026-07-02T12:00:00+00:00",
+  "last_dequeued_at": "2026-07-02T12:00:01+00:00",
+  "queues": {
+    "influxdb": {
+      "current_backlog": 0,
+      "window_seconds": 3600,
+      "sample_count": 12,
+      "min_queue_length": 0,
+      "max_queue_length": 4,
+      "average_queue_length": 0.5,
+      "enqueued": 6,
+      "dequeued": 6,
+      "last_enqueued_at": "2026-07-02T12:00:00+00:00",
+      "last_dequeued_at": "2026-07-02T12:00:01+00:00"
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary>See more: GET /sensors/active</summary>
+
+Returns the number of discovered sensor classes that are currently enabled.
+
+```json
+{
+  "active_sensors": 3
+}
+```
+
+</details>
 
 ### Metrics Queue Fanout
 
