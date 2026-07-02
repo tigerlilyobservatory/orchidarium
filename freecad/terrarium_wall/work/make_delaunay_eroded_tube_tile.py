@@ -26,6 +26,7 @@ OUTER_MITER_LIMIT = 2.20
 NZ = 16
 TUBE_BASE_EMBED = 0.75
 HORN_FOOT_LOCK = 0.10
+HORN_FLARE_LINEARITY = 0.0
 INNER_OPEN_START = 0.12
 INNER_OPEN_END = 0.36
 POST_WIDTH = base.SOCKET_INSET * 2.0
@@ -321,6 +322,9 @@ def tube_bottom_z(cell):
 
 
 def tube_top_z(cell):
+    heights = cell.get("height_loop")
+    if heights:
+        return BASE + max(heights)
     return BASE + cell["height"]
 
 
@@ -334,7 +338,8 @@ def horn_flare_mix(t):
     u = (t - HORN_FOOT_LOCK) / (1.0 - HORN_FOOT_LOCK)
     u = max(0.0, min(1.0, u))
     smooth = u * u * (3.0 - 2.0 * u)
-    return 0.22 * smooth + 0.78 * smooth * smooth
+    curved = 0.22 * smooth + 0.78 * smooth * smooth
+    return (1.0 - HORN_FLARE_LINEARITY) * curved + HORN_FLARE_LINEARITY * u
 
 
 def section_outer_loop(cell, t):

@@ -31,12 +31,16 @@ def low_outer_loop_at_t(cell, t):
     if foot_loop is None or top_loop is None:
         return tile.section_outer_loop(cell, low_source_t(t))
     u = base.smoothstep(0.0, 1.0, t)
-    flare = 0.18 * u + 0.82 * u * u
+    curved = 0.18 * u + 0.82 * u * u
+    flare = (1.0 - tile.HORN_FLARE_LINEARITY) * curved + tile.HORN_FLARE_LINEARITY * u
     return tile.lerp_loop(foot_loop, top_loop, flare)
 
 
 def low_build_tube_sections(cell):
     height = cell["height"]
+    height_loop = cell.get("height_loop")
+    lip_follow = cell.get("lip_height_follow", 1.0)
+    lip_max_delta = cell.get("lip_height_max_delta")
     sections = []
     open_started = False
     last_inner_loop = None
@@ -53,11 +57,17 @@ def low_build_tube_sections(cell):
                 open_started = True
                 last_inner_loop = inner_loop
 
-        z = tile.BASE - tile.TUBE_BASE_EMBED + (height + tile.TUBE_BASE_EMBED) * t
         rim = base.smoothstep(0.66, 1.0, source_t)
+        lip_blend = base.smoothstep(0.68, 1.0, t)
         count = len(outer_loop)
         outer_ring = []
         for i, p in enumerate(outer_loop):
+            z = tile.BASE - tile.TUBE_BASE_EMBED + (height + tile.TUBE_BASE_EMBED) * t
+            if height_loop and i < len(height_loop):
+                delta = height_loop[i] - height
+                if lip_max_delta is not None:
+                    delta = max(-lip_max_delta, min(lip_max_delta, delta))
+                z += delta * lip_follow * lip_blend
             lift = rim * (tile.RIM_LIFT + tile.rim_wave(cell, i, count))
             outer_ring.append((p[0], p[1], z + lift))
 
@@ -65,6 +75,12 @@ def low_build_tube_sections(cell):
         if inner_loop is not None:
             inner_ring = []
             for i, p in enumerate(inner_loop):
+                z = tile.BASE - tile.TUBE_BASE_EMBED + (height + tile.TUBE_BASE_EMBED) * t
+                if height_loop and i < len(height_loop):
+                    delta = height_loop[i] - height
+                    if lip_max_delta is not None:
+                        delta = max(-lip_max_delta, min(lip_max_delta, delta))
+                    z += delta * lip_follow * lip_blend
                 lift = rim * (tile.RIM_LIFT - tile.RIM_INNER_DROP + tile.rim_wave(cell, i, count) * 0.45)
                 inner_ring.append((p[0], p[1], z + lift))
 
@@ -76,7 +92,7 @@ def low_build_tube_sections(cell):
                 "outer_ring": outer_ring,
                 "inner_ring": inner_ring,
                 "rim": rim,
-                "z": z,
+                "z": tile.BASE - tile.TUBE_BASE_EMBED + (height + tile.TUBE_BASE_EMBED) * t,
             }
         )
     return sections

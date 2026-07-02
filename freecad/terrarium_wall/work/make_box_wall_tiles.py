@@ -20,7 +20,7 @@ SHORT_COLUMNS = 3
 LONG_COLUMNS = 6
 WALL_ROWS = 3
 BOX_PANEL_TOP_SCALE = 0.995
-BOX_PANEL_FOOT_TO_TOP_SCALE = 0.42
+BOX_PANEL_FOOT_TO_TOP_SCALE = 0.47
 BOX_TUBE_WALL = 1.00
 BOX_OUTER_BASE_SCALE = 0.66
 BOX_BOUNDARY_SCALE = 0.999
@@ -30,13 +30,16 @@ BOX_TOP_POLAR_EDGE_SAMPLES = 8
 BOX_TOP_SMOOTHING = 0
 BOX_DELAUNAY_POINT_SCALE = 0.25
 BOX_DELAUNAY_RADIUS_SCALE = 1.90
-BOX_TUBE_HEIGHT_MIN_IN = 0.25
-BOX_TUBE_HEIGHT_MAX_IN = 1.00
+BOX_TUBE_HEIGHT_MIN_IN = 0.50
+BOX_TUBE_HEIGHT_MAX_IN = 1.50
 BOX_RIM_LIFT = 1.35
 BOX_RIM_INNER_DROP = 0.95
 BOX_RIM_WAVE = 0.0
-CLEAR_FREQUENCY = 0.90
-ORANGE_FREQUENCY = 0.02
+BOX_HORN_FLARE_LINEARITY = 0.65
+BOX_LIP_HEIGHT_FOLLOW = 0.45
+BOX_LIP_HEIGHT_MAX_DELTA = 2.4
+CLEAR_FREQUENCY = 0.60
+ORANGE_FREQUENCY = 0.10
 PERF_HOLE_SIZE = 2.6
 PERF_SPACING = 4.8
 PERF_EDGE_MARGIN = 6.0
@@ -75,6 +78,7 @@ def configure_box_profile():
     tile.RIM_LIFT = BOX_RIM_LIFT
     tile.RIM_INNER_DROP = BOX_RIM_INNER_DROP
     tile.RIM_WAVE = BOX_RIM_WAVE
+    tile.HORN_FLARE_LINEARITY = BOX_HORN_FLARE_LINEARITY
     tile.MAX_RIM_EXTRA = tile.RIM_LIFT + tile.RIM_WAVE * 1.45
     base.MAX_Z = base.BASE + BOX_TUBE_HEIGHT_MAX_IN * INCH + tile.MAX_RIM_EXTRA
     base.TUBE_MAX_HEIGHT = base.MAX_Z - base.BASE
@@ -773,7 +777,7 @@ def voronoi_cells_from_points(width, height, count, radius, seed):
 def color_for_cell(rng):
     roll = rng.random()
     if roll < CLEAR_FREQUENCY:
-        return 1
+        return 2
     if roll < CLEAR_FREQUENCY + ORANGE_FREQUENCY:
         return 4
     return 3
@@ -787,7 +791,7 @@ def assign_face_colors(cells, rng):
     for cell in cells:
         cell["color"] = 3
     for index in indices[:clear_count]:
-        cells[index]["color"] = 1
+        cells[index]["color"] = 2
     for index in indices[clear_count : clear_count + orange_count]:
         cells[index]["color"] = 4
 
@@ -950,6 +954,7 @@ def make_face_cells(face):
             continue
         center = tile.loop_center(low_top_loop)
         low_foot_loop = tile.scaled_loop(low_top_loop, center, BOX_PANEL_FOOT_TO_TOP_SCALE)
+        height_loop = [smooth_wave_body_height(point, width, height, face["seed"]) for point in low_top_loop]
         cells.append(
             {
                 "tri": polygon,
@@ -961,6 +966,9 @@ def make_face_cells(face):
                 "low_foot_loop": low_foot_loop,
                 "low_top_loop": low_top_loop,
                 "height": smooth_wave_body_height(site, width, height, face["seed"]),
+                "height_loop": height_loop,
+                "lip_height_follow": BOX_LIP_HEIGHT_FOLLOW,
+                "lip_height_max_delta": BOX_LIP_HEIGHT_MAX_DELTA,
                 "color": 3,
                 "rim_phase": rng.uniform(0.0, 2.0 * math.pi),
                 "rim_phase2": rng.uniform(0.0, 2.0 * math.pi),
@@ -974,9 +982,7 @@ def offset_cell_to_panel(cell, x0, y0, panel_width, panel_height):
     def shifted(loop):
         return [(x - x0, y - y0) for x, y in loop]
 
-    top_loop = clip_loop_to_rect_safe(shifted(cell["top_loop"]), panel_width, panel_height)
-    if top_loop is None:
-        return None
+    top_loop = shifted(cell["top_loop"])
     center = tile.loop_center(top_loop)
     base_loop = tile.scaled_loop(top_loop, center, BOX_PANEL_FOOT_TO_TOP_SCALE)
     base_loop = constrain_base_loop_to_rect(base_loop, panel_width, panel_height)
@@ -991,6 +997,9 @@ def offset_cell_to_panel(cell, x0, y0, panel_width, panel_height):
         "low_foot_loop": base_loop,
         "low_top_loop": top_loop,
         "height": cell["height"],
+        "height_loop": cell.get("height_loop"),
+        "lip_height_follow": cell.get("lip_height_follow", BOX_LIP_HEIGHT_FOLLOW),
+        "lip_height_max_delta": cell.get("lip_height_max_delta", BOX_LIP_HEIGHT_MAX_DELTA),
         "color": cell["color"],
         "rim_phase": cell["rim_phase"],
         "rim_phase2": cell["rim_phase2"],
@@ -1203,7 +1212,7 @@ def coverage_estimate_rect(cells, width, height, samples=1200):
 
 
 def write_panel_preview(path, spec, cells, tiled=False):
-    palette = {1: "#d8edf0", 3: "#f7f3e8", 4: "#e8662e"}
+    palette = {1: "#161514", 2: "#d8edf0", 3: "#f7f3e8", 4: "#e8662e"}
     width = spec["width"]
     height = spec["height"]
     cols = 3 if tiled else 1
@@ -1216,7 +1225,7 @@ def write_panel_preview(path, spec, cells, tiled=False):
             for col in range(cols):
                 ox = col * width
                 oy = row * height
-                f.write('<rect x="%.3f" y="%.3f" width="%.3f" height="%.3f" fill="%s" stroke="#6e5a48" stroke-width="0.45" stroke-opacity="0.55"/>\n' % (ox, oy, width, height, palette[3]))
+                f.write('<rect x="%.3f" y="%.3f" width="%.3f" height="%.3f" fill="%s" stroke="#6e5a48" stroke-width="0.45" stroke-opacity="0.55"/>\n' % (ox, oy, width, height, palette[1]))
                 for cell in sorted(cells, key=lambda item: item["height"]):
                     loop = cell["top_loop"]
                     inner = tile.inner_loop_from_outer(loop)
@@ -1239,7 +1248,7 @@ def write_png_for_svg(svg_path, width=2200):
 
 def build_panel(spec, perforated=False):
     cells = make_panel_cells(spec)
-    meshes = {1: base.Mesh(), 3: base.Mesh(), 4: base.Mesh()}
+    meshes = {2: base.Mesh(), 3: base.Mesh(), 4: base.Mesh()}
     base_mesh = base.Mesh()
     perforation_count = add_rect_base_with_bottom_ports(base_mesh, spec["width"], spec["height"], cells, perforated)
     for cell in cells:
@@ -1251,8 +1260,8 @@ def build_panel(spec, perforated=False):
         combined.extend(mesh)
 
     stem = "%s_%s%s" % (PREFIX, spec["name"], "_perforated" if perforated else "")
-    base_mesh.write_ascii_stl(os.path.join(base.OUT_DIR, "%s_color_3_white_base.stl" % stem), "%s_color_3_white_base" % stem)
-    for color_number, label in ((1, "clear"), (3, "white"), (4, "orange")):
+    base_mesh.write_ascii_stl(os.path.join(base.OUT_DIR, "%s_color_1_black_base.stl" % stem), "%s_color_1_black_base" % stem)
+    for color_number, label in ((2, "clear"), (3, "white"), (4, "orange")):
         if meshes[color_number].tris:
             meshes[color_number].write_ascii_stl(os.path.join(base.OUT_DIR, "%s_color_%d_%s.stl" % (stem, color_number, label)), "%s_color_%d_%s" % (stem, color_number, label))
     combined.write_ascii_stl(os.path.join(base.OUT_DIR, "%s_combined_reference.stl" % stem), "%s_combined_reference" % stem)
@@ -1286,7 +1295,7 @@ def build_panel_from_cells(stem, cells, panel_width, panel_height, label=None, c
 
     solid_base = base.Mesh()
     perforated_base = base.Mesh()
-    tube_meshes = {1: base.Mesh(), 3: base.Mesh(), 4: base.Mesh()}
+    tube_meshes = {2: base.Mesh(), 3: base.Mesh(), 4: base.Mesh()}
     include_bottom_note = label == BOTTOM_NOTE_TILE_LABEL
     add_rect_base_with_bottom_ports(solid_base, panel_width, panel_height, cells, perforated=False, label=label, corner_filler=corner_filler, include_bottom_note=include_bottom_note)
     perforation_count = add_rect_base_with_bottom_ports(perforated_base, panel_width, panel_height, cells, perforated=True, label=label, corner_filler=corner_filler, include_bottom_note=include_bottom_note)
@@ -1294,14 +1303,14 @@ def build_panel_from_cells(stem, cells, panel_width, panel_height, label=None, c
         tile.add_eroded_triangle_tube(tube_meshes[cell["color"]], cell)
 
     solid_base.write_ascii_stl(
-        os.path.join(panel_dir, "%s_base_solid_color_3_white.stl" % stem),
-        "%s_base_solid_color_3_white" % stem,
+        os.path.join(panel_dir, "%s_base_solid_color_1_black.stl" % stem),
+        "%s_base_solid_color_1_black" % stem,
     )
     perforated_base.write_ascii_stl(
-        os.path.join(panel_dir, "%s_base_perforated_color_3_white.stl" % stem),
-        "%s_base_perforated_color_3_white" % stem,
+        os.path.join(panel_dir, "%s_base_perforated_color_1_black.stl" % stem),
+        "%s_base_perforated_color_1_black" % stem,
     )
-    for color_number, color_label in ((1, "clear"), (3, "white"), (4, "orange")):
+    for color_number, color_label in ((2, "clear"), (3, "white"), (4, "orange")):
         if tube_meshes[color_number].tris:
             tube_meshes[color_number].write_ascii_stl(
                 os.path.join(panel_dir, "%s_tubes_color_%d_%s.stl" % (stem, color_number, color_label)),
@@ -1326,7 +1335,7 @@ def build_panel_from_cells(stem, cells, panel_width, panel_height, label=None, c
 
 
 def write_face_preview(path, face, cells):
-    palette = {1: "#d8edf0", 3: "#f7f3e8", 4: "#e8662e"}
+    palette = {1: "#161514", 2: "#d8edf0", 3: "#f7f3e8", 4: "#e8662e"}
     width = face["width"]
     height = face["height"]
     margin = 8.0
@@ -1338,7 +1347,7 @@ def write_face_preview(path, face, cells):
             % (-margin, -margin, width + margin * 2.0, height + margin * 2.0, pixel_width, pixel_height)
         )
         f.write('<rect x="%.3f" y="%.3f" width="%.3f" height="%.3f" fill="#f4f0e7"/>\n' % (-margin, -margin, width + margin * 2.0, height + margin * 2.0))
-        f.write('<rect x="0" y="0" width="%.3f" height="%.3f" fill="%s"/>\n' % (width, height, palette[3]))
+        f.write('<rect x="0" y="0" width="%.3f" height="%.3f" fill="%s"/>\n' % (width, height, palette[1]))
         for cell in sorted(cells, key=lambda item: item["height"]):
             loop = cell["top_loop"]
             inner = tile.inner_loop_from_outer(loop)
@@ -1599,10 +1608,10 @@ def write_readme(path, summaries):
         f.write("Box wall tile set\n")
         f.write("=================\n\n")
         f.write("Panel surface algorithm: one full-face Delaunay triangle field for each box side length, subdivided into separate printable panels.\n")
-        f.write("Tube body heights follow two blended face-specific smooth waves from %.2f in to %.2f in; rim-wave jitter is disabled for the box-wall tubes.\n" % (BOX_TUBE_HEIGHT_MIN_IN, BOX_TUBE_HEIGHT_MAX_IN))
+        f.write("Tube body heights and lip contours follow two blended face-specific smooth waves from %.2f in to %.2f in; rim-wave jitter is disabled for the box-wall tubes.\n" % (BOX_TUBE_HEIGHT_MIN_IN, BOX_TUBE_HEIGHT_MAX_IN))
         f.write("Each panel has a small shallow back-side label such as S11 or L36; labels are not visible from the front.\n")
         f.write("Panel %s underside has a small centered recessed note: %s.\n" % (BOTTOM_NOTE_TILE_LABEL, BOTTOM_NOTE_TEXT))
-        f.write("Outer column panels include a white 45-degree corner filler lip; tube loops are clipped on all panel sides for cleaner edges.\n")
+        f.write("Outer column panels include a black 45-degree corner filler lip; tube loops are clipped only at full-face outer edges, not at internal tile seams.\n")
         f.write("Target box: %.2f in x %.2f in x %.2f in tall.\n" % (BOX_SHORT_IN, BOX_LONG_IN, BOX_HEIGHT_IN))
         f.write("Base-height allowance used in panel math: %.3f in per end.\n" % BOX_BASE_ALLOWANCE_IN)
         f.write("Short face clear span: %.2f in = %d panels at %.2f in wide; two different short face sets are generated.\n" % (BOX_SHORT_IN - 2.0 * BOX_BASE_ALLOWANCE_IN, SHORT_COLUMNS, short_w))
@@ -1613,12 +1622,12 @@ def write_readme(path, summaries):
         horizontal_pairs = 2 * ((SHORT_COLUMNS - 1) * WALL_ROWS + (LONG_COLUMNS - 1) * WALL_ROWS)
         vertical_pairs = 2 * (SHORT_COLUMNS + LONG_COLUMNS) * (WALL_ROWS - 1)
         f.write("Straight seam connectors: about %d two-stud connectors for panel-to-panel seams if every socket pair is connected.\n\n" % ((horizontal_pairs + vertical_pairs) * 2))
-        f.write("Each panel folder contains clear/white/orange tube STLs as needed, plus two white base choices: solid and perforated.\n")
-        f.write("For a solid panel, import the solid white base and the available tube STLs. For an airflow panel, import the perforated white base and the same available tube STLs.\n")
+        f.write("Each panel folder contains clear/white/orange tube STLs as needed, plus two black base choices: solid and perforated.\n")
+        f.write("For a solid panel, import the solid black base and the available tube STLs. For an airflow panel, import the perforated black base and the same available tube STLs.\n")
         f.write("Material-color and height-wave PNG previews for the full short and long side layouts are in outputs/previews.\n\n")
         for summary in summaries:
             f.write("%s: %d cells, %d airflow perforations, %d sampled body overlaps, %d top overlaps, %.2f mm minimum wall, %.1f%% top coverage.\n" % (summary["stem"], summary["cells"], summary["perforations"], summary["body_overlaps"], summary["top_overlaps"], summary["min_wall"], summary["coverage"] * 100.0))
-        f.write("\nBambu colors: color 1 clear tubes, color 3 white base and tubes, color 4 orange tubes.\n")
+        f.write("\nBambu colors: color 1 black base, color 2 clear tubes, color 3 white tubes, color 4 orange tubes.\n")
         f.write("Tube color frequencies: %.1f%% clear, %.1f%% orange, %.1f%% white.\n" % (CLEAR_FREQUENCY * 100.0, ORANGE_FREQUENCY * 100.0, (1.0 - CLEAR_FREQUENCY - ORANGE_FREQUENCY) * 100.0))
 
 
