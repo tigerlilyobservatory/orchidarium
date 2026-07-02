@@ -1,0 +1,29 @@
+---
+- name: Find Orchidarium udev rules
+  ansible.builtin.find:
+    paths: "{{ orchidarium_remote_root }}/config/rules"
+    patterns: "*.rules"
+    file_type: file
+  register: orchidarium_udev_rules
+
+- name: Install Orchidarium udev rules
+  become: true
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "/etc/udev/rules.d/99-orchidarium-{{ item.path | basename }}"
+    remote_src: true
+    mode: '0644'
+  loop: "{{ orchidarium_udev_rules.files }}"
+
+- name: Reload udev rules
+  become: true
+  ansible.builtin.command: udevadm control --reload-rules
+  changed_when: false
+  when: orchidarium_udev_rules.matched > 0
+
+- name: Trigger udev rules
+  become: true
+  ansible.builtin.command: udevadm trigger
+  changed_when: false
+  when: orchidarium_udev_rules.matched > 0
+

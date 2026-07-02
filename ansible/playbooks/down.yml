@@ -1,0 +1,11 @@
+---
+- name: Stop Orchidarium on Raspberry Pi
+  hosts: orchidarium
+  gather_facts: false
+  roles:
+    - role: orchidarium_compose
+      vars:
+        orchidarium_compose_state: down
+    - role: orchidarium_udev
+      vars:
+        orchidarium_udev_state: absent

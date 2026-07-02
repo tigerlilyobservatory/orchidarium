@@ -1,0 +1,32 @@
+---
+- name: Ensure remote Orchidarium directory exists
+  ansible.builtin.file:
+    path: "{{ orchidarium_remote_root }}"
+    state: directory
+    mode: '0755'
+
+- name: Remove stale deployed source items
+  ansible.builtin.file:
+    path: "{{ orchidarium_remote_root }}/{{ item }}"
+    state: absent
+  loop: "{{ orchidarium_source_items }}"
+
+- name: Copy Orchidarium source items
+  ansible.builtin.copy:
+    src: "{{ orchidarium_source_root }}/{{ item }}"
+    dest: "{{ orchidarium_remote_root }}/"
+    mode: preserve
+  loop: "{{ orchidarium_source_items }}"
+
+- name: Write remote Compose environment wrapper
+  ansible.builtin.template:
+    src: remote-env.sh.j2
+    dest: "{{ orchidarium_remote_root }}/.ansible-env.sh"
+    mode: '0600'
+
+- name: Generate local self-signed Grafana certificates
+  ansible.builtin.command: bash scripts/generate-test-self-signed-certs.sh
+  args:
+    chdir: "{{ orchidarium_remote_root }}"
+    creates: "{{ orchidarium_remote_root }}/certs/cert.pem"
+

@@ -1,0 +1,92 @@
+---
+- name: Install base Raspberry Pi packages
+  become: true
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - git
+      - gnupg
+      - i2c-tools
+      - inetutils-inetd
+      - openssl
+      - python3-apt
+      - python3-debian
+      - rsync
+      - udev
+    state: present
+    update_cache: true
+
+- name: Ensure Docker keyring directory exists
+  become: true
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Install Docker apt key
+  become: true
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/debian/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    mode: '0644'
+
+- name: Read Debian package architecture
+  ansible.builtin.command: dpkg --print-architecture
+  changed_when: false
+  register: orchidarium_dpkg_architecture
+
+- name: Install Docker apt repository
+  become: true
+  ansible.builtin.deb822_repository:
+    name: docker
+    types:
+      - deb
+    uris:
+      - https://download.docker.com/linux/debian
+    suites:
+      - "{{ ansible_distribution_release }}"
+    components:
+      - stable
+    architectures:
+      - "{{ orchidarium_dpkg_architecture.stdout }}"
+    signed_by: /etc/apt/keyrings/docker.asc
+    state: present
+
+- name: Update apt cache after Docker repository changes
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+
+- name: Install Docker Engine and Compose plugin
+  become: true
+  ansible.builtin.apt:
+    name:
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-ce
+      - docker-ce-cli
+      - docker-compose-plugin
+    state: present
+
+- name: Enable Docker service
+  become: true
+  ansible.builtin.service:
+    name: docker
+    enabled: true
+    state: started
+
+- name: Add remote user to Docker and hardware groups
+  become: true
+  ansible.builtin.shell: |
+    set -e
+    usermod -a -G docker "{{ ansible_user }}"
+    for group in gpio i2c; do
+        if getent group "${group}" >/dev/null 2>&1; then
+            usermod -a -G "${group}" "{{ ansible_user }}"
+        fi
+    done
+  args:
+    executable: /bin/bash
+  changed_when: false
+

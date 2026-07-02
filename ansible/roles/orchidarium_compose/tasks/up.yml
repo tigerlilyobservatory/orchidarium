@@ -1,0 +1,13 @@
+---
+- name: Start Orchidarium with Docker Compose
+  become: true
+  ansible.builtin.shell: |
+    set -euo pipefail
+    source .ansible-env.sh
+    docker compose up {{ orchidarium_compose_up_args }}
+  args:
+    chdir: "{{ orchidarium_remote_root }}"
+    executable: /bin/bash
+  environment:
+    COMPOSE_PROFILES: "{{ orchidarium_compose_profiles }}"
+

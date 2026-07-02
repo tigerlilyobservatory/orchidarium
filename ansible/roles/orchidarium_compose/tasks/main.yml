@@ -1,0 +1,4 @@
+---
+- name: Apply requested Orchidarium Compose state
+  ansible.builtin.include_tasks: "{{ orchidarium_compose_state }}.yml"
+

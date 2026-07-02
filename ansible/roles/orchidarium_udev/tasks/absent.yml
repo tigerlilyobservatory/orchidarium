@@ -1,0 +1,28 @@
+---
+- name: Find installed Orchidarium udev rules
+  become: true
+  ansible.builtin.find:
+    paths: /etc/udev/rules.d
+    patterns: "99-orchidarium-*.rules"
+    file_type: file
+  register: orchidarium_installed_udev_rules
+
+- name: Remove Orchidarium udev rules
+  become: true
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ orchidarium_installed_udev_rules.files }}"
+
+- name: Reload udev rules
+  become: true
+  ansible.builtin.command: udevadm control --reload-rules
+  changed_when: false
+  when: orchidarium_installed_udev_rules.matched > 0
+
+- name: Trigger udev rules
+  become: true
+  ansible.builtin.command: udevadm trigger
+  changed_when: false
+  when: orchidarium_installed_udev_rules.matched > 0
+

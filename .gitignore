@@ -2,6 +2,7 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=python
 
 .vscode/
+.ansible/
 certs/
 scripts/.env.sh
 
