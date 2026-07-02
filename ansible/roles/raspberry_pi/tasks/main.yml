@@ -81,7 +81,7 @@
   ansible.builtin.shell: |
     set -e
     usermod -a -G docker "{{ ansible_user }}"
-    for group in gpio i2c; do
+    for group in i2c; do
         if getent group "${group}" >/dev/null 2>&1; then
             usermod -a -G "${group}" "{{ ansible_user }}"
         fi
@@ -89,4 +89,3 @@
   args:
     executable: /bin/bash
   changed_when: false
-
