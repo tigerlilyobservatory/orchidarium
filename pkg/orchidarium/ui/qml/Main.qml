@@ -115,6 +115,10 @@ Window {
             }
         }
 
+        MetricsPage {
+            id: metricsPage
+        }
+
         SettingsPage {
             id: settingsPage
 
@@ -138,7 +142,8 @@ Window {
         currentIndex: swipeView.currentIndex
 
         onControlsRequested: root.showPage(0)
-        onSettingsRequested: root.showPage(1)
+        onMetricsRequested: root.showPage(1)
+        onSettingsRequested: root.showPage(2)
     }
 
     Popup {

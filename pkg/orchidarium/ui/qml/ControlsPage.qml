@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 
 Item {
     id: root
@@ -52,131 +53,150 @@ Item {
         return "off"
     }
 
-    Row {
+    Rectangle {
         anchors.fill: parent
-        anchors.leftMargin: 20
-        anchors.rightMargin: 20
-        anchors.topMargin: 76
-        anchors.bottomMargin: 20
-        spacing: 10
+        color: "#ffffff"
 
-        Repeater {
-            id: relayRepeater
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 20
+            anchors.rightMargin: 20
+            anchors.topMargin: 76
+            anchors.bottomMargin: 20
+            spacing: 18
 
-            model: root.relayCount
+            Text {
+                Layout.fillWidth: true
+                text: "Relay states"
+                color: "#222222"
+                font.pixelSize: 28
+                font.bold: true
+            }
 
-            delegate: Column {
-                required property int index
+            Row {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                spacing: 10
 
-                width: (parent.width - ((root.relayCount - 1) * 10)) / root.relayCount
-                spacing: 12
+                Repeater {
+                    id: relayRepeater
 
-                Rectangle {
-                    width: parent.width
-                    height: 120
-                    radius: 12
+                    model: root.relayCount
 
-                    color: root.relayStateForIndex(index) === "on" ? "#4CAF50"
-                         : root.relayStateForIndex(index) === "off" ? "#F44336"
-                         : "#9E9E9E"
+                    delegate: Column {
+                        required property int index
 
-                    border.color: "#333333"
-                    border.width: 2
+                        width: (parent.width - ((root.relayCount - 1) * 10)) / root.relayCount
+                        spacing: 12
 
-                    MouseArea {
-                        anchors.fill: parent
-
-                        onPressAndHold: root.renameRelayRequested(index)
-                    }
-
-                    Column {
-                        anchors.fill: parent
-                        anchors.margins: 8
-                        spacing: 6
-
-                        Text {
+                        Rectangle {
                             width: parent.width
-                            height: (parent.height - 6) / 2
-                            text: root.relayNameForIndex(index)
-                            color: "white"
-                            font.bold: true
-                            font.pixelSize: 22
-                            minimumPixelSize: 6
-                            fontSizeMode: Text.Fit
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                            wrapMode: Text.NoWrap
-                            elide: Text.ElideRight
+                            height: 120
+                            radius: 12
+
+                            color: root.relayStateForIndex(index) === "on" ? "#4CAF50"
+                                 : root.relayStateForIndex(index) === "off" ? "#F44336"
+                                 : "#9E9E9E"
+
+                            border.color: "#333333"
+                            border.width: 2
+
+                            MouseArea {
+                                anchors.fill: parent
+
+                                onPressAndHold: root.renameRelayRequested(index)
+                            }
+
+                            Column {
+                                anchors.fill: parent
+                                anchors.margins: 8
+                                spacing: 6
+
+                                Text {
+                                    width: parent.width
+                                    height: (parent.height - 6) / 2
+                                    text: root.relayNameForIndex(index)
+                                    color: "white"
+                                    font.bold: true
+                                    font.pixelSize: 22
+                                    minimumPixelSize: 6
+                                    fontSizeMode: Text.Fit
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                    wrapMode: Text.NoWrap
+                                    elide: Text.ElideRight
+                                }
+
+                                Text {
+                                    width: parent.width
+                                    height: (parent.height - 6) / 2
+                                    text: root.relayStateForIndex(index).toUpperCase()
+                                    color: "white"
+                                    font.bold: true
+                                    font.pixelSize: 28
+                                    minimumPixelSize: 6
+                                    fontSizeMode: Text.Fit
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                    wrapMode: Text.NoWrap
+                                    elide: Text.ElideRight
+                                }
+                            }
                         }
 
-                        Text {
+                        Slider {
+                            id: relaySlider
+
+                            property string currentRelayState: root.relayStateForIndex(index)
+
                             width: parent.width
-                            height: (parent.height - 6) / 2
-                            text: root.relayStateForIndex(index).toUpperCase()
-                            color: "white"
-                            font.bold: true
-                            font.pixelSize: 28
-                            minimumPixelSize: 6
-                            fontSizeMode: Text.Fit
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                            wrapMode: Text.NoWrap
-                            elide: Text.ElideRight
+                            from: 0
+                            to: 2
+                            stepSize: 1
+                            snapMode: Slider.SnapAlways
+
+                            Component.onCompleted: value = root.sliderValueForState(currentRelayState)
+
+                            onCurrentRelayStateChanged: {
+                                let nextValue = root.sliderValueForState(currentRelayState)
+
+                                if (value !== nextValue)
+                                    value = nextValue
+                            }
+
+                            onMoved: root.relayStateChanged(index, root.stateForSliderValue(value))
                         }
-                    }
-                }
 
-                Slider {
-                    id: relaySlider
+                        Row {
+                            width: parent.width
 
-                    property string currentRelayState: root.relayStateForIndex(index)
+                            Text {
+                                text: "ON"
+                                width: parent.width / 3
+                                horizontalAlignment: Text.AlignLeft
+                                color: "#333333"
+                                font.pixelSize: 9
+                                font.bold: true
+                            }
 
-                    width: parent.width
-                    from: 0
-                    to: 2
-                    stepSize: 1
-                    snapMode: Slider.SnapAlways
+                            Text {
+                                text: "AUTO"
+                                width: parent.width / 3
+                                horizontalAlignment: Text.AlignHCenter
+                                color: "#333333"
+                                font.pixelSize: 9
+                                font.bold: true
+                            }
 
-                    Component.onCompleted: value = root.sliderValueForState(currentRelayState)
-
-                    onCurrentRelayStateChanged: {
-                        let nextValue = root.sliderValueForState(currentRelayState)
-
-                        if (value !== nextValue)
-                            value = nextValue
-                    }
-
-                    onMoved: root.relayStateChanged(index, root.stateForSliderValue(value))
-                }
-
-                Row {
-                    width: parent.width
-
-                    Text {
-                        text: "ON"
-                        width: parent.width / 3
-                        horizontalAlignment: Text.AlignLeft
-                        color: "#333333"
-                        font.pixelSize: 9
-                        font.bold: true
-                    }
-
-                    Text {
-                        text: "AUTO"
-                        width: parent.width / 3
-                        horizontalAlignment: Text.AlignHCenter
-                        color: "#333333"
-                        font.pixelSize: 9
-                        font.bold: true
-                    }
-
-                    Text {
-                        text: "OFF"
-                        width: parent.width / 3
-                        horizontalAlignment: Text.AlignRight
-                        color: "#333333"
-                        font.pixelSize: 9
-                        font.bold: true
+                            Text {
+                                text: "OFF"
+                                width: parent.width / 3
+                                horizontalAlignment: Text.AlignRight
+                                color: "#333333"
+                                font.pixelSize: 9
+                                font.bold: true
+                            }
+                        }
                     }
                 }
             }

@@ -16,6 +16,13 @@ Item {
     onIntervalSecondsChanged: intervalInputValue = intervalSeconds
     onMaxPointBacklogChanged: maxPointBacklogInputValue = maxPointBacklog
 
+    function maxPointBacklogDisplayValue() {
+        if (maxPointBacklogInputValue === "0")
+            return "0 (infinite)"
+
+        return maxPointBacklogInputValue
+    }
+
     function normalizeIntegerText(value, minimum, fallback) {
         let textValue = String(value).trim()
 
@@ -25,19 +32,41 @@ Item {
         return String(Math.max(minimum, Number(textValue)))
     }
 
-    function commitIntervalInput() {
-        intervalInputValue = normalizeIntegerText(intervalInputValue, 5, intervalSeconds)
-        intervalCommitted(intervalInputValue)
+    function openIntervalEditor() {
+        editPopup.settingName = "interval"
+        editPopup.title = "Sensor collection interval"
+        editPopup.minimumValue = 5
+        editPopup.fallbackValue = intervalSeconds
+        editPopup.draftValue = intervalInputValue
+        editPopup.open()
     }
 
-    function commitMaxPointBacklogInput() {
-        maxPointBacklogInputValue = normalizeIntegerText(maxPointBacklogInputValue, 0, maxPointBacklog)
-        maxPointBacklogCommitted(maxPointBacklogInputValue)
+    function openMaxPointBacklogEditor() {
+        editPopup.settingName = "backlog"
+        editPopup.title = "Max point backlog"
+        editPopup.minimumValue = 0
+        editPopup.fallbackValue = maxPointBacklog
+        editPopup.draftValue = maxPointBacklogInputValue
+        editPopup.open()
+    }
+
+    function commitEditPopup() {
+        let normalizedValue = normalizeIntegerText(editInput.text, editPopup.minimumValue, editPopup.fallbackValue)
+
+        if (editPopup.settingName === "interval") {
+            intervalInputValue = normalizedValue
+            intervalCommitted(intervalInputValue)
+        } else if (editPopup.settingName === "backlog") {
+            maxPointBacklogInputValue = normalizedValue
+            maxPointBacklogCommitted(maxPointBacklogInputValue)
+        }
+
+        editPopup.close()
     }
 
     Rectangle {
         anchors.fill: parent
-        color: "#eeeeee"
+        color: "#ffffff"
 
         ColumnLayout {
             anchors.fill: parent
@@ -55,65 +84,155 @@ Item {
                 font.bold: true
             }
 
-            ColumnLayout {
+            Rectangle {
                 Layout.fillWidth: true
-                spacing: 8
+                Layout.preferredHeight: 76
+                color: "#ffffff"
+                radius: 4
+                border.color: "#d5d5d5"
+                border.width: 1
 
-                Text {
-                    Layout.fillWidth: true
-                    text: "Collection interval (s)"
-                    color: "#333333"
-                    font.pixelSize: 16
-                    font.bold: true
-                }
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: 16
+                    anchors.rightMargin: 12
+                    spacing: 12
 
-                TextField {
-                    id: intervalInput
+                    Text {
+                        Layout.fillWidth: true
+                        text: "Sensor collection interval: " + root.intervalInputValue + "s."
+                        color: "#222222"
+                        font.pixelSize: 16
+                        verticalAlignment: Text.AlignVCenter
+                        wrapMode: Text.WordWrap
+                    }
 
-                    Layout.fillWidth: true
-                    text: root.intervalInputValue
-                    placeholderText: "Seconds"
-                    inputMethodHints: Qt.ImhDigitsOnly
-                    validator: IntValidator { bottom: 5 }
-                    selectByMouse: true
+                    Button {
+                        Layout.preferredWidth: 88
+                        Layout.preferredHeight: 42
+                        text: "Edit"
 
-                    onTextEdited: root.intervalInputValue = text
-                    onEditingFinished: root.commitIntervalInput()
-                    Keys.onReturnPressed: root.commitIntervalInput()
+                        onClicked: root.openIntervalEditor()
+                    }
                 }
             }
 
-            ColumnLayout {
+            Rectangle {
                 Layout.fillWidth: true
-                spacing: 8
+                Layout.preferredHeight: 76
+                color: "#ffffff"
+                radius: 4
+                border.color: "#d5d5d5"
+                border.width: 1
 
-                Text {
-                    Layout.fillWidth: true
-                    text: "Max point backlog"
-                    color: "#333333"
-                    font.pixelSize: 16
-                    font.bold: true
-                }
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: 16
+                    anchors.rightMargin: 12
+                    spacing: 12
 
-                TextField {
-                    id: maxPointBacklogInput
+                    Text {
+                        Layout.fillWidth: true
+                        text: "Max point backlog: " + root.maxPointBacklogDisplayValue() + "."
+                        color: "#222222"
+                        font.pixelSize: 16
+                        verticalAlignment: Text.AlignVCenter
+                        wrapMode: Text.WordWrap
+                    }
 
-                    Layout.fillWidth: true
-                    text: root.maxPointBacklogInputValue
-                    placeholderText: "0 means infinite"
-                    inputMethodHints: Qt.ImhDigitsOnly
-                    validator: IntValidator { bottom: 0 }
-                    selectByMouse: true
+                    Button {
+                        Layout.preferredWidth: 88
+                        Layout.preferredHeight: 42
+                        text: "Edit"
 
-                    onTextEdited: root.maxPointBacklogInputValue = text
-                    onEditingFinished: root.commitMaxPointBacklogInput()
-                    Keys.onReturnPressed: root.commitMaxPointBacklogInput()
+                        onClicked: root.openMaxPointBacklogEditor()
+                    }
                 }
             }
 
             Item {
                 Layout.fillHeight: true
             }
+        }
+    }
+
+    Popup {
+        id: editPopup
+
+        property string settingName: ""
+        property string title: ""
+        property int minimumValue: 0
+        property string fallbackValue: ""
+        property string draftValue: ""
+
+        modal: true
+        focus: true
+        anchors.centerIn: parent
+        width: Math.min(root.width - 56, 420)
+        height: 230
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+
+        contentItem: Rectangle {
+            anchors.fill: parent
+            color: "#ffffff"
+            radius: 4
+            border.color: "#d5d5d5"
+            border.width: 1
+
+            ColumnLayout {
+                anchors.fill: parent
+                anchors.margins: 18
+                spacing: 14
+
+                Text {
+                    Layout.fillWidth: true
+                    text: editPopup.title
+                    color: "#222222"
+                    font.pixelSize: 20
+                    font.bold: true
+                }
+
+                TextField {
+                    id: editInput
+
+                    Layout.fillWidth: true
+                    text: editPopup.draftValue
+                    inputMethodHints: Qt.ImhDigitsOnly
+                    validator: IntValidator { bottom: editPopup.minimumValue }
+                    selectByMouse: true
+
+                    Keys.onReturnPressed: root.commitEditPopup()
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 10
+
+                    Item {
+                        Layout.fillWidth: true
+                    }
+
+                    Button {
+                        Layout.preferredWidth: 92
+                        text: "Cancel"
+
+                        onClicked: editPopup.close()
+                    }
+
+                    Button {
+                        Layout.preferredWidth: 92
+                        text: "Save"
+
+                        onClicked: root.commitEditPopup()
+                    }
+                }
+            }
+        }
+
+        onOpened: {
+            editInput.text = draftValue
+            editInput.selectAll()
+            editInput.forceActiveFocus()
         }
     }
 }

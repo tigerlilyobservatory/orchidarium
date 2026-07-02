@@ -8,6 +8,7 @@ Item {
     property int currentIndex: 0
 
     signal controlsRequested()
+    signal metricsRequested()
     signal settingsRequested()
 
     z: 20
@@ -92,7 +93,7 @@ Item {
 
             ItemDelegate {
                 Layout.fillWidth: true
-                text: "Controls"
+                text: "Hardware Overrides"
                 highlighted: root.currentIndex === 0
 
                 onClicked: {
@@ -103,8 +104,19 @@ Item {
 
             ItemDelegate {
                 Layout.fillWidth: true
-                text: "Settings"
+                text: "Metrics"
                 highlighted: root.currentIndex === 1
+
+                onClicked: {
+                    root.metricsRequested()
+                    navigationDrawer.close()
+                }
+            }
+
+            ItemDelegate {
+                Layout.fillWidth: true
+                text: "Settings"
+                highlighted: root.currentIndex === 2
 
                 onClicked: {
                     root.settingsRequested()
