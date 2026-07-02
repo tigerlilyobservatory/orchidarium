@@ -191,9 +191,18 @@ _authorize_xquartz_clients()
     fi
 }
 
+##
+# Ensure local persisted configuration directories exist before Compose starts.
+#   -> return::void
+_prepare_local_config()
+{
+    mkdir -p "${ORCHIDARIUM_CONFIG_DIR}"
+}
+
 _install_udev_rules
 _load_environment
 _require_environment
+_prepare_local_config
 _validate_ui_display_environment
 _authorize_xquartz_clients
 

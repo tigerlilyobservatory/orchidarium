@@ -136,7 +136,8 @@ def create_healthcheck_api(app: Flask) -> None:
 
         This endpoint reports whether the container should receive work. It returns HTTP 200 only when the
         metrics thread pool is ready, the hardware process has a recent heartbeat, and the largest publisher
-        queue backlog is below MAX_POINT_BACKLOG. It returns HTTP 503 with the same payload schema otherwise.
+        queue backlog is below MAX_POINT_BACKLOG. A MAX_POINT_BACKLOG value of 0 disables this backlog cap.
+        It returns HTTP 503 with the same payload schema otherwise.
 
         Returns:
             ResponseReturnValue: JSON payload and HTTP status. The payload has schema like

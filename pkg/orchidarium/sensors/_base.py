@@ -3,11 +3,11 @@ from __future__ import annotations
 import logging
 
 from abc import abstractmethod, ABC
-from typing import ClassVar, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from orchidarium.data.queue import MetricQueueSink
-    from typing import Literal
+    from typing import ClassVar, Literal
 
 
 log = logging.getLogger(__name__)

@@ -9,12 +9,15 @@ import traceback
 
 from datetime import datetime, timezone
 from threading import Lock
-from typing import Any, Literal
+from typing import TYPE_CHECKING
 
 from attrs import define, field
 from cattrs import unstructure
 
 from orchidarium.runtime.state import read_runtime_state, update_runtime_state
+
+if TYPE_CHECKING:
+    from typing import Any, Literal
 
 
 __all__ = [
@@ -32,8 +35,13 @@ __all__ = [
 ]
 
 
-_PoolStatus = Literal['starting', 'running', 'healthy', 'failed']
-_ProcessStatus = Literal['starting', 'running', 'healthy', 'failed']
+if TYPE_CHECKING:
+    _PoolStatus = Literal['starting', 'running', 'healthy', 'failed']
+    _ProcessStatus = Literal['starting', 'running', 'healthy', 'failed']
+else:
+    _PoolStatus = str
+    _ProcessStatus = str
+
 _HARDWARE_HEARTBEAT_TIMEOUT_SECONDS = 5.0
 
 

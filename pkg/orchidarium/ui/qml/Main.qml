@@ -11,12 +11,16 @@ Window {
 
     property var defaultConfig: ({
         fullscreen: false,
-        relayCount: 4
+        relayCount: 4,
+        intervalSeconds: "60",
+        maxPointBacklog: "1000"
     })
 
     readonly property bool hasConfig: typeof config !== "undefined" && config !== null
     readonly property bool fullscreenEnabled: hasConfig ? config.fullscreen : defaultConfig.fullscreen
     readonly property int relayCount: hasConfig ? config.relayCount : defaultConfig.relayCount
+    readonly property string intervalSeconds: hasConfig ? config.intervalSeconds : defaultConfig.intervalSeconds
+    readonly property string maxPointBacklog: hasConfig ? config.maxPointBacklog : defaultConfig.maxPointBacklog
 
     visibility: fullscreenEnabled ? Window.FullScreen : Window.Windowed
 
@@ -76,6 +80,14 @@ Window {
             relayRepeater.model = 0
             relayRepeater.model = relayCount
             relayStates = Array(relayCount).fill("auto")
+        }
+
+        function onIntervalSecondsChanged() {
+            intervalInput.text = config.intervalSeconds
+        }
+
+        function onMaxPointBacklogChanged() {
+            maxPointBacklogInput.text = config.maxPointBacklog
         }
     }
 
@@ -218,10 +230,82 @@ Window {
                 anchors.fill: parent
                 color: "#eeeeee"
 
-                Text {
-                    anchors.centerIn: parent
-                    text: "Settings Page 2"
-                    color: "#333333"
+                ColumnLayout {
+                    anchors.fill: parent
+                    anchors.margins: 28
+                    spacing: 18
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: "Settings"
+                        color: "#222222"
+                        font.pixelSize: 28
+                        font.bold: true
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: "Collection interval"
+                            color: "#333333"
+                            font.pixelSize: 16
+                            font.bold: true
+                        }
+
+                        TextField {
+                            id: intervalInput
+                            Layout.fillWidth: true
+                            text: intervalSeconds
+                            placeholderText: "Seconds"
+                            inputMethodHints: Qt.ImhDigitsOnly
+                            validator: IntValidator { bottom: 5 }
+                            selectByMouse: true
+
+                            onEditingFinished: {
+                                if (hasConfig) {
+                                    config.setIntervalSeconds(text)
+                                    text = config.intervalSeconds
+                                }
+                            }
+                        }
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: "Max point backlog"
+                            color: "#333333"
+                            font.pixelSize: 16
+                            font.bold: true
+                        }
+
+                        TextField {
+                            id: maxPointBacklogInput
+                            Layout.fillWidth: true
+                            text: maxPointBacklog
+                            placeholderText: "0 means infinite"
+                            inputMethodHints: Qt.ImhDigitsOnly
+                            validator: IntValidator { bottom: 0 }
+                            selectByMouse: true
+
+                            onEditingFinished: {
+                                if (hasConfig) {
+                                    config.setMaxPointBacklog(text)
+                                    text = config.maxPointBacklog
+                                }
+                            }
+                        }
+                    }
+
+                    Item {
+                        Layout.fillHeight: true
+                    }
                 }
             }
         }

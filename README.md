@@ -11,6 +11,7 @@
   - [Motivation](#motivation)
   - [Documentation](#documentation)
     - [Runtime Hierarchy](#runtime-hierarchy)
+    - [Runtime Configuration](#runtime-configuration)
     - [API](#api)
     - [Metrics Queue Fanout](#metrics-queue-fanout)
   - [Development](#development)
@@ -84,7 +85,17 @@ tini
 - `sensor_*`: worker threads created by the metrics process during each collection interval, with one submitted task per discovered sensor.
 - `publisher_*`: worker threads created only for publisher queues with backlog, with one queue per database backend.
 
-`/ready` fails when any publisher queue backlog reaches `MAX_POINT_BACKLOG`, so schedulers can stop sending new work to a container that is falling behind.
+`/ready` fails when any publisher queue backlog reaches `MAX_POINT_BACKLOG`, so schedulers can stop sending new work to a container that is falling behind. Set `MAX_POINT_BACKLOG=0` to disable the backlog cap.
+
+### Runtime Configuration
+
+The UI persists user-defined runtime settings to `/opt/orchidarium/config/state.json`. Docker Compose mounts `ORCHIDARIUM_CONFIG_DIR` at `/opt/orchidarium/config`; local startup defaults that host directory to `./.orchidarium/config`.
+
+- `INTERVAL`: sensor collection interval in seconds. The minimum value is `5`.
+- `MAX_POINT_BACKLOG`: largest allowed publisher queue backlog before `/ready` fails. The minimum value is `0`, and `0` means no configured maximum.
+- `ORCHIDARIUM_STATE_PATH`: optional override for the state file path. This keeps the state location configurable as runtime domains are split into separate services.
+
+The process environment remains the fallback source for these values. State-file reads are cached for one second per process, so repeated checks inside one interval use the same snapshot instead of re-reading the file on every access.
 
 ### API
 
@@ -154,7 +165,7 @@ Reports liveness for the running controller. The endpoint returns HTTP 200 when 
 <details>
 <summary>See more: GET /ready</summary>
 
-Reports scheduler readiness for the running controller. The endpoint returns HTTP 200 only when the metrics thread pool is ready, the hardware process has a recent heartbeat, and the largest publisher queue backlog is below `MAX_POINT_BACKLOG`. It returns HTTP 503 with the same payload shape when readiness fails.
+Reports scheduler readiness for the running controller. The endpoint returns HTTP 200 only when the metrics thread pool is ready, the hardware process has a recent heartbeat, and the largest publisher queue backlog is below `MAX_POINT_BACKLOG`. A `MAX_POINT_BACKLOG` value of `0` disables the backlog cap. It returns HTTP 503 with the same payload shape when readiness fails.
 
 ```json
 {
@@ -265,7 +276,7 @@ publisher thread(s)
 - If a publisher pulls a datum and submission fails, the base `Publisher.publish()` method puts that datum back on the same publisher queue before raising.
 - Queue activity is sampled per queue for a one-hour rolling window. The API reads the latest metrics-process snapshot via `/metrics/queue/backlog`.
 - `current_backlog` is the largest single publisher backlog. `total_current_backlog` is the sum of all publisher backlogs.
-- `/ready` compares `current_backlog` to `MAX_POINT_BACKLOG`; readiness fails when any single publisher queue is too far behind.
+- `/ready` compares `current_backlog` to `MAX_POINT_BACKLOG`; readiness fails when any single publisher queue is too far behind. A `MAX_POINT_BACKLOG` value of `0` disables this readiness cap.
 - The queues are in-memory and local to the metrics process. Runtime state is snapshotted for the API process, but queued points themselves are not durable across a process restart.
 
 ## Development
@@ -354,6 +365,8 @@ If it overlaps, choose a private subnet that is not used by Wi-Fi, VPN, or other
    ```
 
 InfluxDB and MySQL use persistent Docker volumes instead of tmpfs by default, and Grafana/MySQL are behind the `dashboard` profile to keep the Raspberry Pi responsive enough for SSH during normal controller runs.
+
+Remote Ansible startup refuses to run Docker Compose when `ORCHIDARIUM_DOCKER_SUBNET` overlaps the declared Raspberry Pi network, Wi-Fi, LAN, VPN, or other non-Docker host routes visible on the Pi.
 
 #### UI Display
 

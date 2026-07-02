@@ -34,6 +34,15 @@
     group: "{{ ansible_user }}"
     mode: '0600'
 
+- name: Ensure remote persisted configuration directory exists
+  become: true
+  ansible.builtin.file:
+    path: "{{ orchidarium_remote_root }}/.orchidarium/config"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0755'
+
 - name: Generate local self-signed Grafana certificates
   ansible.builtin.command: bash scripts/generate-test-self-signed-certs.sh
   args:

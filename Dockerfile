@@ -68,8 +68,8 @@ RUN groupadd orchidarium \
 WORKDIR /opt/orchidarium
 
 # Ensure that the 'orchidarium' user owns the working directories.
-RUN mkdir -p /wayland-runtime \
-    && chown -R orchidarium:orchidarium . /wayland-runtime
+RUN mkdir -p /wayland-runtime /opt/orchidarium/config \
+    && chown -R orchidarium:orchidarium . /wayland-runtime /opt/orchidarium/config
 
 USER 10001
 

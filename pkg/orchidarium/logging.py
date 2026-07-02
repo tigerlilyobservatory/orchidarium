@@ -8,9 +8,12 @@ from __future__ import annotations
 import logging
 import sys
 
-from typing import Final
+from typing import TYPE_CHECKING
 
 from orchidarium import env
+
+if TYPE_CHECKING:
+    from typing import Final
 
 
 _banner_logged = False
