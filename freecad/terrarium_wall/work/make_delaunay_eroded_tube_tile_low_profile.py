@@ -39,8 +39,6 @@ def low_outer_loop_at_t(cell, t):
 def low_build_tube_sections(cell):
     height = cell["height"]
     height_loop = cell.get("height_loop")
-    lip_follow = cell.get("lip_height_follow", 1.0)
-    lip_max_delta = cell.get("lip_height_max_delta")
     sections = []
     open_started = False
     last_inner_loop = None
@@ -58,16 +56,10 @@ def low_build_tube_sections(cell):
                 last_inner_loop = inner_loop
 
         rim = base.smoothstep(0.66, 1.0, source_t)
-        lip_blend = base.smoothstep(0.68, 1.0, t)
         count = len(outer_loop)
         outer_ring = []
         for i, p in enumerate(outer_loop):
             z = tile.BASE - tile.TUBE_BASE_EMBED + (height + tile.TUBE_BASE_EMBED) * t
-            if height_loop and i < len(height_loop):
-                delta = height_loop[i] - height
-                if lip_max_delta is not None:
-                    delta = max(-lip_max_delta, min(lip_max_delta, delta))
-                z += delta * lip_follow * lip_blend
             lift = rim * (tile.RIM_LIFT + tile.rim_wave(cell, i, count))
             outer_ring.append((p[0], p[1], z + lift))
 
@@ -76,11 +68,6 @@ def low_build_tube_sections(cell):
             inner_ring = []
             for i, p in enumerate(inner_loop):
                 z = tile.BASE - tile.TUBE_BASE_EMBED + (height + tile.TUBE_BASE_EMBED) * t
-                if height_loop and i < len(height_loop):
-                    delta = height_loop[i] - height
-                    if lip_max_delta is not None:
-                        delta = max(-lip_max_delta, min(lip_max_delta, delta))
-                    z += delta * lip_follow * lip_blend
                 lift = rim * (tile.RIM_LIFT - tile.RIM_INNER_DROP + tile.rim_wave(cell, i, count) * 0.45)
                 inner_ring.append((p[0], p[1], z + lift))
 
@@ -93,6 +80,31 @@ def low_build_tube_sections(cell):
                 "inner_ring": inner_ring,
                 "rim": rim,
                 "z": tile.BASE - tile.TUBE_BASE_EMBED + (height + tile.TUBE_BASE_EMBED) * t,
+            }
+        )
+    if height_loop and sections[-1]["inner_loop"] is not None:
+        outer_loop = sections[-1]["outer_loop"]
+        inner_loop = sections[-1]["inner_loop"]
+        count = len(outer_loop)
+        outer_ring = []
+        inner_ring = []
+        for i, p in enumerate(outer_loop):
+            vertex_height = height_loop[i] if i < len(height_loop) else height
+            z = tile.BASE + vertex_height + tile.RIM_LIFT
+            outer_ring.append((p[0], p[1], z))
+        for i, p in enumerate(inner_loop):
+            vertex_height = height_loop[i] if i < len(height_loop) else height
+            z = tile.BASE + vertex_height + tile.RIM_LIFT - tile.RIM_INNER_DROP
+            inner_ring.append((p[0], p[1], z))
+        sections.append(
+            {
+                "t": 1.0,
+                "outer_loop": outer_loop,
+                "inner_loop": inner_loop,
+                "outer_ring": outer_ring,
+                "inner_ring": inner_ring,
+                "rim": 1.0,
+                "z": tile.BASE + height + tile.RIM_LIFT,
             }
         )
     return sections

@@ -2,7 +2,7 @@ Box wall tile set
 =================
 
 Panel surface algorithm: one full-face Delaunay triangle field for each box side length, subdivided into separate printable panels.
-Tube body heights and lip contours follow two blended face-specific smooth waves from 0.50 in to 1.50 in; rim-wave jitter is disabled for the box-wall tubes.
+Tube body heights and lip contours follow two blended face-specific smooth waves from 0.50 in to 1.00 in; rim-wave jitter is disabled for the box-wall tubes.
 Each panel has a small shallow back-side label such as S11 or L36; labels are not visible from the front.
 Panel A11 underside has a small centered recessed note: willow <3 emma.
 Outer column panels include a white 45-degree corner filler lip; tube loops are clipped only at full-face outer edges, not at internal tile seams.
@@ -20,42 +20,42 @@ Each panel folder contains clear/white/orange tube STLs as needed, plus two whit
 For a solid panel, import the solid white base and the available tube STLs. For an airflow panel, import the perforated white base and the same available tube STLs.
 Material-color and height-wave PNG previews for the full short and long side layouts are in outputs/previews.
 
-box_wall_short_a_r1_c1: 30 cells, 156 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 80.2% top coverage.
-box_wall_short_a_r1_c2: 37 cells, 184 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 73.7% top coverage.
-box_wall_short_a_r1_c3: 32 cells, 207 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 75.8% top coverage.
-box_wall_short_a_r2_c1: 29 cells, 199 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 75.0% top coverage.
-box_wall_short_a_r2_c2: 31 cells, 207 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 73.8% top coverage.
-box_wall_short_a_r2_c3: 41 cells, 178 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 74.8% top coverage.
-box_wall_short_a_r3_c1: 33 cells, 190 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 74.8% top coverage.
-box_wall_short_a_r3_c2: 34 cells, 181 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 80.1% top coverage.
-box_wall_short_a_r3_c3: 30 cells, 195 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 76.4% top coverage.
-box_wall_short_b_r1_c1: 34 cells, 175 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 77.3% top coverage.
-box_wall_short_b_r1_c2: 34 cells, 187 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 72.9% top coverage.
-box_wall_short_b_r1_c3: 35 cells, 192 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 73.3% top coverage.
-box_wall_short_b_r2_c1: 29 cells, 201 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 78.8% top coverage.
-box_wall_short_b_r2_c2: 37 cells, 178 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 72.2% top coverage.
-box_wall_short_b_r2_c3: 29 cells, 187 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 77.4% top coverage.
-box_wall_short_b_r3_c1: 36 cells, 186 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 72.6% top coverage.
-box_wall_short_b_r3_c2: 32 cells, 203 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 76.6% top coverage.
-box_wall_short_b_r3_c3: 44 cells, 166 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 79.4% top coverage.
-box_wall_long_r1_c1: 29 cells, 166 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 75.7% top coverage.
-box_wall_long_r1_c2: 25 cells, 177 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 69.6% top coverage.
-box_wall_long_r1_c3: 33 cells, 164 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 77.4% top coverage.
-box_wall_long_r1_c4: 30 cells, 169 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 76.5% top coverage.
-box_wall_long_r1_c5: 30 cells, 170 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 75.2% top coverage.
-box_wall_long_r1_c6: 30 cells, 172 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 74.2% top coverage.
-box_wall_long_r2_c1: 36 cells, 160 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 79.3% top coverage.
-box_wall_long_r2_c2: 34 cells, 166 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 76.8% top coverage.
-box_wall_long_r2_c3: 33 cells, 164 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 74.8% top coverage.
-box_wall_long_r2_c4: 28 cells, 167 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 72.1% top coverage.
-box_wall_long_r2_c5: 25 cells, 179 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 72.9% top coverage.
-box_wall_long_r2_c6: 31 cells, 180 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 77.7% top coverage.
-box_wall_long_r3_c1: 30 cells, 171 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 78.2% top coverage.
-box_wall_long_r3_c2: 29 cells, 150 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 78.5% top coverage.
-box_wall_long_r3_c3: 34 cells, 178 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 75.2% top coverage.
-box_wall_long_r3_c4: 31 cells, 163 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 77.7% top coverage.
-box_wall_long_r3_c5: 31 cells, 164 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 74.5% top coverage.
-box_wall_long_r3_c6: 26 cells, 184 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 82.3% top coverage.
+box_wall_short_a_r1_c1: 30 cells, 166 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 73.2% top coverage.
+box_wall_short_a_r1_c2: 37 cells, 197 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 65.5% top coverage.
+box_wall_short_a_r1_c3: 32 cells, 219 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 68.3% top coverage.
+box_wall_short_a_r2_c1: 29 cells, 207 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 66.0% top coverage.
+box_wall_short_a_r2_c2: 31 cells, 215 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 65.8% top coverage.
+box_wall_short_a_r2_c3: 41 cells, 191 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 67.0% top coverage.
+box_wall_short_a_r3_c1: 33 cells, 200 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 65.5% top coverage.
+box_wall_short_a_r3_c2: 34 cells, 194 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 69.8% top coverage.
+box_wall_short_a_r3_c3: 30 cells, 201 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 67.4% top coverage.
+box_wall_short_b_r1_c1: 34 cells, 198 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 70.0% top coverage.
+box_wall_short_b_r1_c2: 34 cells, 195 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 65.2% top coverage.
+box_wall_short_b_r1_c3: 35 cells, 202 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 65.5% top coverage.
+box_wall_short_b_r2_c1: 29 cells, 209 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 69.8% top coverage.
+box_wall_short_b_r2_c2: 37 cells, 186 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 65.8% top coverage.
+box_wall_short_b_r2_c3: 29 cells, 202 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 68.8% top coverage.
+box_wall_short_b_r3_c1: 36 cells, 194 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 64.3% top coverage.
+box_wall_short_b_r3_c2: 32 cells, 220 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 68.8% top coverage.
+box_wall_short_b_r3_c3: 44 cells, 179 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 72.7% top coverage.
+box_wall_long_r1_c1: 29 cells, 179 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 67.5% top coverage.
+box_wall_long_r1_c2: 25 cells, 180 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 61.8% top coverage.
+box_wall_long_r1_c3: 33 cells, 170 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 68.3% top coverage.
+box_wall_long_r1_c4: 30 cells, 173 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 68.8% top coverage.
+box_wall_long_r1_c5: 30 cells, 180 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 67.0% top coverage.
+box_wall_long_r1_c6: 30 cells, 182 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 66.6% top coverage.
+box_wall_long_r2_c1: 36 cells, 172 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 71.8% top coverage.
+box_wall_long_r2_c2: 34 cells, 174 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 69.8% top coverage.
+box_wall_long_r2_c3: 33 cells, 173 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 67.4% top coverage.
+box_wall_long_r2_c4: 28 cells, 176 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 64.2% top coverage.
+box_wall_long_r2_c5: 25 cells, 185 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 66.1% top coverage.
+box_wall_long_r2_c6: 31 cells, 193 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 70.7% top coverage.
+box_wall_long_r3_c1: 30 cells, 183 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 70.2% top coverage.
+box_wall_long_r3_c2: 29 cells, 165 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 70.5% top coverage.
+box_wall_long_r3_c3: 34 cells, 186 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 67.8% top coverage.
+box_wall_long_r3_c4: 31 cells, 173 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 68.0% top coverage.
+box_wall_long_r3_c5: 31 cells, 175 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 65.7% top coverage.
+box_wall_long_r3_c6: 26 cells, 199 airflow perforations, 0 sampled body overlaps, 0 top overlaps, 0.98 mm minimum wall, 75.5% top coverage.
 
 Bambu colors: color 1 black, color 2 clear tubes, color 3 white base and tubes, color 4 orange tubes.
 Tube color frequencies: 60.0% clear, 10.0% orange, 30.0% white.

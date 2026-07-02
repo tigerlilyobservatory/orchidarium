@@ -635,28 +635,37 @@ def add_eroded_triangle_tube(mesh, cell):
     inner = [section["inner_ring"] for section in sections]
 
     n = len(outer[0])
+    last = len(outer) - 1
     open_zi = next(
         (i for i, section in enumerate(sections) if section["t"] >= INNER_OPEN_START and section["inner_ring"] is not None),
         None,
     )
-    for zi in range(NZ):
+
+    def add_tri_up(a, b, c):
+        if base.tri_normal(a, b, c)[2] < 0.0:
+            mesh.add_tri(a, c, b)
+        else:
+            mesh.add_tri(a, b, c)
+
+    for zi in range(last):
         for i in range(n):
             j = (i + 1) % n
             mesh.add_quad(outer[zi][i], outer[zi][j], outer[zi + 1][j], outer[zi + 1][i])
             if inner[zi] is not None and inner[zi + 1] is not None:
                 mesh.add_quad(inner[zi][j], inner[zi][i], inner[zi + 1][i], inner[zi + 1][j])
     for i in range(1, n - 1):
-        mesh.add_tri(outer[0][0], outer[0][i + 1], outer[0][i])
-    if inner[NZ] is None:
+        add_tri_up(outer[0][0], outer[0][i + 1], outer[0][i])
+    if inner[last] is None:
         for i in range(1, n - 1):
-            mesh.add_tri(outer[NZ][0], outer[NZ][i], outer[NZ][i + 1])
+            add_tri_up(outer[last][0], outer[last][i], outer[last][i + 1])
         return
     for i in range(n):
         j = (i + 1) % n
-        mesh.add_quad(outer[NZ][i], outer[NZ][j], inner[NZ][j], inner[NZ][i])
+        add_tri_up(outer[last][i], outer[last][j], inner[last][j])
+        add_tri_up(outer[last][i], inner[last][j], inner[last][i])
     if open_zi is not None:
         for i in range(1, n - 1):
-            mesh.add_tri(inner[open_zi][0], inner[open_zi][i], inner[open_zi][i + 1])
+            add_tri_up(inner[open_zi][0], inner[open_zi][i], inner[open_zi][i + 1])
 
 
 def polygons_overlap(poly_a, poly_b):

@@ -19,7 +19,7 @@ PANEL_HEIGHT_IN = 4.0
 SHORT_COLUMNS = 3
 LONG_COLUMNS = 6
 WALL_ROWS = 3
-BOX_PANEL_TOP_SCALE = 0.995
+BOX_PANEL_TOP_SCALE = 0.94
 BOX_PANEL_FOOT_TO_TOP_SCALE = 0.47
 BOX_TUBE_WALL = 1.00
 BOX_OUTER_BASE_SCALE = 0.66
@@ -31,13 +31,11 @@ BOX_TOP_SMOOTHING = 0
 BOX_DELAUNAY_POINT_SCALE = 0.25
 BOX_DELAUNAY_RADIUS_SCALE = 1.90
 BOX_TUBE_HEIGHT_MIN_IN = 0.50
-BOX_TUBE_HEIGHT_MAX_IN = 1.50
-BOX_RIM_LIFT = 1.35
-BOX_RIM_INNER_DROP = 0.95
+BOX_TUBE_HEIGHT_MAX_IN = 1.00
+BOX_RIM_LIFT = 0.75
+BOX_RIM_INNER_DROP = 0.45
 BOX_RIM_WAVE = 0.0
-BOX_HORN_FLARE_LINEARITY = 0.65
-BOX_LIP_HEIGHT_FOLLOW = 0.45
-BOX_LIP_HEIGHT_MAX_DELTA = 2.4
+BOX_HORN_FLARE_LINEARITY = 1.00
 CLEAR_FREQUENCY = 0.60
 ORANGE_FREQUENCY = 0.10
 PERF_HOLE_SIZE = 2.6
@@ -967,8 +965,6 @@ def make_face_cells(face):
                 "low_top_loop": low_top_loop,
                 "height": smooth_wave_body_height(site, width, height, face["seed"]),
                 "height_loop": height_loop,
-                "lip_height_follow": BOX_LIP_HEIGHT_FOLLOW,
-                "lip_height_max_delta": BOX_LIP_HEIGHT_MAX_DELTA,
                 "color": 3,
                 "rim_phase": rng.uniform(0.0, 2.0 * math.pi),
                 "rim_phase2": rng.uniform(0.0, 2.0 * math.pi),
@@ -998,8 +994,6 @@ def offset_cell_to_panel(cell, x0, y0, panel_width, panel_height):
         "low_top_loop": top_loop,
         "height": cell["height"],
         "height_loop": cell.get("height_loop"),
-        "lip_height_follow": cell.get("lip_height_follow", BOX_LIP_HEIGHT_FOLLOW),
-        "lip_height_max_delta": cell.get("lip_height_max_delta", BOX_LIP_HEIGHT_MAX_DELTA),
         "color": cell["color"],
         "rim_phase": cell["rim_phase"],
         "rim_phase2": cell["rim_phase2"],
