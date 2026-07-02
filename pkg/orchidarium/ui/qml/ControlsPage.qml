@@ -361,8 +361,14 @@ Item {
                 font.bold: true
             }
 
+            FontMetrics {
+                id: freezeButtonMetrics
+            }
+
             Button {
-                Layout.fillWidth: true
+                id: freezeButton
+
+                Layout.preferredWidth: freezeButtonMetrics.advanceWidth("00000000000000000000") + leftPadding + rightPadding + 16
                 Layout.preferredHeight: 54
                 text: root.relaysFrozen ? "Resume Relays" : "Freeze Relays"
 
