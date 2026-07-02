@@ -130,14 +130,82 @@ def _preflight_x11_tcp_display(display: str) -> None:
     port = 6000 + int(match.group('display_number'))
 
     try:
-        with socket.create_connection((host, port), timeout=1.0):
-            return
+        with socket.create_connection((host, port), timeout=1.0) as connection:
+            _preflight_x11_setup(connection, display)
     except OSError as e:
         raise UIDisplayConfigurationError(
             f'QT_QPA_PLATFORM=xcb could not connect to DISPLAY={display} at {host}:{port}; '
             'on macOS this usually means XQuartz is not running, "Allow connections from network clients" is disabled, '
             'XQuartz was not restarted after enabling it, or xhost has not allowed Docker clients'
         ) from e
+
+
+def _preflight_x11_setup(connection: socket.socket, display: str) -> None:
+    """
+    Validate that the X11 server accepts unauthenticated setup.
+
+    Args:
+        connection (socket.socket): connected X11 TCP socket.
+        display (str): X11 DISPLAY value.
+
+    Raises:
+        UIDisplayConfigurationError: if X11 rejects setup.
+    """
+    connection.settimeout(1.0)
+    connection.sendall(b'l\x00\x0b\x00\x00\x00\x00\x00\x00\x00\x00\x00')
+
+    response = connection.recv(8)
+
+    if len(response) < 8:
+        raise UIDisplayConfigurationError(f'QT_QPA_PLATFORM=xcb received an incomplete X11 setup response from DISPLAY={display}')
+
+    status = response[0]
+
+    if status == 1:
+        return
+
+    if status == 0:
+        raise UIDisplayConfigurationError(
+            f'QT_QPA_PLATFORM=xcb connected to DISPLAY={display}, but X11 setup was rejected: {_read_x11_failure_reason(connection, response)}. '
+            'On macOS, open XQuartz, enable Settings > Security > Allow connections from network clients, '
+            'fully restart XQuartz, then allow local clients with /opt/X11/bin/xhost +localhost.'
+        )
+
+    if status == 2:
+        raise UIDisplayConfigurationError(
+            f'QT_QPA_PLATFORM=xcb connected to DISPLAY={display}, but X11 requested additional authentication. '
+            'Use xhost for local Docker clients or mount a matching Xauthority file into the container.'
+        )
+
+    raise UIDisplayConfigurationError(f'QT_QPA_PLATFORM=xcb received unknown X11 setup status {status} from DISPLAY={display}')
+
+
+def _read_x11_failure_reason(connection: socket.socket, setup_response: bytes) -> str:
+    """
+    Read an X11 setup failure reason.
+
+    Args:
+        connection (socket.socket): connected X11 TCP socket.
+        setup_response (bytes): initial eight-byte setup response.
+
+    Returns:
+        str: setup failure reason.
+    """
+    reason_length = setup_response[1]
+    additional_length = int.from_bytes(setup_response[6:8], byteorder='little')
+    remaining = additional_length * 4
+    reason_data = b''
+
+    while remaining > 0:
+        chunk = connection.recv(remaining)
+
+        if not chunk:
+            break
+
+        reason_data += chunk
+        remaining -= len(chunk)
+
+    return reason_data[:reason_length].decode('utf-8', errors='replace').strip() or 'authorization required'
 
 
 def run_ui_process() -> int:

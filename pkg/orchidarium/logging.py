@@ -24,7 +24,21 @@ _BANNER: Final[str] = r"""
   \___/|_|  \___|_| |_|_|\__,_|\__,_|_|  |_|\__,_|_| |_| |_|
 
                     Tiger Lily Plants LLC.
+                  https://tiger-lily-plants.com
 """
+
+
+def _debug_enabled(value: str) -> bool:
+    """
+    Return whether a string value enables debug logging.
+
+    Args:
+        value (str): configured debug value.
+
+    Returns:
+        bool: True when debug logging should be enabled.
+    """
+    return value.strip().lower() in {'1', 'true', 'yes', 'on', 'debug'}
 
 
 def _log_level() -> int:
@@ -34,7 +48,7 @@ def _log_level() -> int:
     Returns:
         int: Python logging level.
     """
-    return logging.DEBUG if env['DEBUG'] != '' else logging.INFO
+    return logging.DEBUG if _debug_enabled(env['DEBUG']) else logging.INFO
 
 
 def _log_startup_preamble(level: int) -> None:

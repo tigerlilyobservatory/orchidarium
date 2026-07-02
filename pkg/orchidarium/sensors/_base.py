@@ -21,7 +21,7 @@ class Sensor(ABC):
         self._col: bool = False
         self._pub: bool = False
         self._temperature = default_temperature
-        log.info(f'Instantiating thread for sensor "{self.__class__.__name__.lower().removesuffix("sensor")}"')
+        log.debug(f'Instantiating thread for sensor "{self.__class__.__name__.lower().removesuffix("sensor")}"')
 
     @property
     def _collection(self) -> bool:

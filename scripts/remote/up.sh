@@ -8,15 +8,22 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 ANSIBLE_CONFIG_PATH="${REPO_ROOT}/ansible/ansible.cfg"
 ANSIBLE_INVENTORY="${ORCHIDARIUM_REMOTE_INVENTORY:-${REPO_ROOT}/ansible/inventory/hosts.yml}"
 RESET_REMOTE_STACK=false
+DEBUG_ENABLED=false
 ANSIBLE_ARGS=()
 
 cd "${REPO_ROOT}"
 
 for argument in "$@"; do
-    if [ "${argument}" = '--reset' ]; then
-        RESET_REMOTE_STACK=true
-        continue
-    fi
+    case "${argument}" in
+        --debug)
+            DEBUG_ENABLED=true
+            continue
+            ;;
+        --reset)
+            RESET_REMOTE_STACK=true
+            continue
+            ;;
+    esac
 
     ANSIBLE_ARGS+=("${argument}")
 done
@@ -31,6 +38,10 @@ if ! command -v sshpass >/dev/null 2>&1; then
 fi
 
 export ANSIBLE_CONFIG="${ANSIBLE_CONFIG_PATH}"
+
+if [ "${DEBUG_ENABLED}" = true ]; then
+    export DEBUG='true'
+fi
 
 if [ "${RESET_REMOTE_STACK}" = true ]; then
     "${SCRIPT_DIR}/down.sh" "${ANSIBLE_ARGS[@]}"
