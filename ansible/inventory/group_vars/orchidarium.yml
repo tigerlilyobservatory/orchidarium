@@ -12,7 +12,7 @@ orchidarium_docker_subnet: "{{ lookup('env', 'ORCHIDARIUM_DOCKER_SUBNET') | defa
 orchidarium_qt_qpa_platform: "{{ lookup('env', 'QT_QPA_PLATFORM') | default('wayland', true) }}"
 orchidarium_qt_quick_backend: "{{ lookup('env', 'QT_QUICK_BACKEND') | default('', true) }}"
 orchidarium_wayland_display: "{{ lookup('env', 'WAYLAND_DISPLAY') | default('wayland-0', true) }}"
-orchidarium_wayland_runtime_dir: "{{ lookup('env', 'WAYLAND_RUNTIME_DIR') | default('/run/user/' ~ ansible_user_uid, true) }}"
+orchidarium_wayland_runtime_dir: "{{ lookup('env', 'WAYLAND_RUNTIME_DIR') | default('/run/user/' ~ ansible_facts['user_uid'], true) }}"
 
 orchidarium_source_items:
   - bin

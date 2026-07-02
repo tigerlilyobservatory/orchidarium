@@ -45,7 +45,7 @@
     uris:
       - https://download.docker.com/linux/debian
     suites:
-      - "{{ ansible_distribution_release }}"
+      - "{{ ansible_facts['distribution_release'] }}"
     components:
       - stable
     architectures:

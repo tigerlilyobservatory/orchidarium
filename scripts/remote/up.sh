@@ -10,6 +10,7 @@ ANSIBLE_INVENTORY="${ORCHIDARIUM_REMOTE_INVENTORY:-${REPO_ROOT}/ansible/inventor
 RESET_REMOTE_STACK=false
 DEBUG_ENABLED=false
 ANSIBLE_ARGS=()
+ANSIBLE_PLAYBOOK=()
 
 cd "${REPO_ROOT}"
 
@@ -28,10 +29,24 @@ for argument in "$@"; do
     ANSIBLE_ARGS+=("${argument}")
 done
 
-if ! command -v ansible-playbook >/dev/null 2>&1; then
-    printf "ERROR: ansible-playbook is required. Install Ansible before running remote deployment.\\n" >&2
+##
+# Resolve the ansible-playbook command from the project dev environment or PATH.
+#   -> return::void
+_resolve_ansible_playbook()
+{
+    if command -v poetry >/dev/null 2>&1 && poetry run ansible-playbook --version >/dev/null 2>&1; then
+        ANSIBLE_PLAYBOOK=(poetry run ansible-playbook)
+        return
+    fi
+
+    if command -v ansible-playbook >/dev/null 2>&1 && ansible-playbook --version >/dev/null 2>&1; then
+        ANSIBLE_PLAYBOOK=(ansible-playbook)
+        return
+    fi
+
+    printf "ERROR: ansible-playbook is required. Run 'poetry install --with dev' before remote deployment.\\n" >&2
     exit 1
-fi
+}
 
 if ! command -v sshpass >/dev/null 2>&1; then
     printf "INFO: sshpass is not installed. Password-based defaults may fail unless SSH keys are configured.\\n" >&2
@@ -43,11 +58,13 @@ if [ "${DEBUG_ENABLED}" = true ]; then
     export DEBUG='true'
 fi
 
+_resolve_ansible_playbook
+
 if [ "${RESET_REMOTE_STACK}" = true ]; then
     "${SCRIPT_DIR}/down.sh" "${ANSIBLE_ARGS[@]}"
 fi
 
-ansible-playbook \
+"${ANSIBLE_PLAYBOOK[@]}" \
     -i "${ANSIBLE_INVENTORY}" \
     ansible/playbooks/up.yml \
     "${ANSIBLE_ARGS[@]}"
