@@ -3,7 +3,14 @@
 
 
 # Orchidarium runtime.
-DEBUG='true'
+case "${DEBUG:-}" in
+    1|true|TRUE|yes|YES|on|ON|debug|DEBUG)
+        DEBUG='true'
+        ;;
+    *)
+        DEBUG=''
+        ;;
+esac
 HEALTHCHECK_PORT='8085'
 INFLUXDB_DATABASE='orchidarium'
 INFLUXDB_HOST='influxdb:8086'

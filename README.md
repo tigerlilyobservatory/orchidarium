@@ -286,6 +286,12 @@ Reset the remote stack before starting it:
    ./scripts/remote/up.sh --reset
    ```
 
+Start the remote stack with debug logging:
+
+   ```text
+   ./scripts/remote/up.sh --debug
+   ```
+
 Stop Orchidarium remotely. This runs Docker Compose down on the Pi and removes the installed Orchidarium udev rules.
 
    ```text
@@ -312,6 +318,12 @@ Start the local core stack. This installs and reloads the Orchidarium udev rules
 
    ```text
    ./scripts/local/up.sh
+   ```
+
+Start the local stack with debug logging:
+
+   ```text
+   ./scripts/local/up.sh --debug
    ```
 
 Start Grafana and MySQL as well when the dashboard stack is needed:
@@ -355,15 +367,13 @@ Run `./scripts/local/up.sh` from the same desktop user that owns the Wayland ses
 
 On macOS, Docker Desktop does not expose a host Wayland session. Local startup defaults to `QT_QPA_PLATFORM=offscreen`, `QT_QUICK_BACKEND=software`, and the private `/tmp/orchidarium` runtime directory so the stack can run for testing without a display socket.
 
-To display the UI on macOS, run an X server such as XQuartz and override the backend. In XQuartz, enable `Settings > Security > Allow connections from network clients`, then fully quit and reopen XQuartz. Allow local clients before starting the stack:
+To display the UI on macOS, run an X server such as XQuartz and override the backend. In XQuartz, enable `Settings > Security > Allow connections from network clients`, then fully quit and reopen XQuartz. Start XQuartz before starting the stack:
 
    ```text
    open -a XQuartz
-   export DISPLAY=:0
-   /opt/X11/bin/xhost +localhost
    ```
 
-Then start the stack with the Docker-facing display value:
+Then start the stack with the Docker-facing display value. The local startup wrapper runs `/opt/X11/bin/xhost +localhost` against XQuartz before Docker Compose starts.
 
    ```text
    QT_QPA_PLATFORM=xcb DISPLAY=host.docker.internal:0 WAYLAND_RUNTIME_DIR=/tmp ./scripts/local/up.sh

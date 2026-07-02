@@ -6,6 +6,8 @@ The default inventory target is `orchidarium-rpi` at `172.16.0.35` on the `172.1
 
 The `up.yml` playbook installs Docker, Pi helper packages, udev rules, deploys the current local source tree to `/home/tigerlily/orchidarium`, generates local Grafana certificates, and runs Docker Compose. The `down.yml` playbook runs Docker Compose down and removes the installed Orchidarium udev rules.
 
+Use `scripts/remote/up.sh --debug` to start the remote stack with Orchidarium debug logging enabled.
+
 Roles:
 
 - `raspberry_pi`: install Raspberry Pi packages, Docker, Compose, and remote user groups.

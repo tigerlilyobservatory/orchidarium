@@ -27,6 +27,19 @@ _BANNER: Final[str] = r"""
 """
 
 
+def _debug_enabled(value: str) -> bool:
+    """
+    Return whether a string value enables debug logging.
+
+    Args:
+        value (str): configured debug value.
+
+    Returns:
+        bool: True when debug logging should be enabled.
+    """
+    return value.strip().lower() in {'1', 'true', 'yes', 'on', 'debug'}
+
+
 def _log_level() -> int:
     """
     Return the configured logging level.
@@ -34,7 +47,7 @@ def _log_level() -> int:
     Returns:
         int: Python logging level.
     """
-    return logging.DEBUG if env['DEBUG'] != '' else logging.INFO
+    return logging.DEBUG if _debug_enabled(env['DEBUG']) else logging.INFO
 
 
 def _log_startup_preamble(level: int) -> None:

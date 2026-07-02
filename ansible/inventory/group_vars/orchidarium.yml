@@ -7,6 +7,7 @@ orchidarium_compose_profiles: "{{ lookup('env', 'COMPOSE_PROFILES') | default(''
 orchidarium_compose_up_args: "{{ lookup('env', 'ORCHIDARIUM_REMOTE_COMPOSE_UP_ARGS') | default('-d --build', true) }}"
 orchidarium_compose_down_args: "{{ lookup('env', 'ORCHIDARIUM_REMOTE_COMPOSE_DOWN_ARGS') | default('', true) }}"
 
+orchidarium_debug: "{{ lookup('env', 'DEBUG') | default('', true) }}"
 orchidarium_docker_subnet: "{{ lookup('env', 'ORCHIDARIUM_DOCKER_SUBNET') | default('172.31.240.0/24', true) }}"
 orchidarium_qt_qpa_platform: "{{ lookup('env', 'QT_QPA_PLATFORM') | default('wayland', true) }}"
 orchidarium_qt_quick_backend: "{{ lookup('env', 'QT_QUICK_BACKEND') | default('', true) }}"
