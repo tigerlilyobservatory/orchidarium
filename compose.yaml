@@ -51,6 +51,8 @@ services:
       - GF_DATABASE_PASSWORD=${GF_DATABASE_PASSWORD}
     ports:
       - '0.0.0.0:3000:3000'
+    networks:
+      - control
     restart: unless-stopped
     healthcheck:
       test: >
@@ -60,17 +62,18 @@ services:
       start_period: 5s
       timeout: 5s
     user: '0'
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-        reservations:
-          cpus: '0.25'
+    cpus: '0.50'
+    mem_limit: 384m
+    memswap_limit: 384m
+    oom_score_adj: 500
+    pids_limit: 256
+    profiles:
+      - dashboard
   influxdb:
     image: influxdb:2.7.6
     container_name: influxdb
     volumes:
-      - influxdb-data:/data
+      - influxdb-data:/var/lib/influxdb2
     environment:
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN}
       #- DOCKER_INFLUXDB_INIT_RETENTION=1w
@@ -81,6 +84,8 @@ services:
       - DOCKER_INFLUXDB_INIT_BUCKET=${DOCKER_INFLUXDB_INIT_BUCKET}
     ports:
       - '127.0.0.1:8086:8086'
+    networks:
+      - control
     restart: unless-stopped
     healthcheck:
       test: influx ping || exit 1
@@ -88,12 +93,11 @@ services:
       retries: 10
       start_period: 5s
       timeout: 5s
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-        reservations:
-          cpus: '0.25'
+    cpus: '0.75'
+    mem_limit: 768m
+    memswap_limit: 768m
+    oom_score_adj: 500
+    pids_limit: 256
   mysql:
     image: mysql:9.5
     container_name: mysql
@@ -106,6 +110,8 @@ services:
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
     ports:
       - '127.0.0.1:3306:3306'
+    networks:
+      - control
     restart: unless-stopped
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
@@ -113,6 +119,13 @@ services:
       timeout: 5s
       retries: 5
       start_period: 5s
+    cpus: '0.50'
+    mem_limit: 512m
+    memswap_limit: 512m
+    oom_score_adj: 500
+    pids_limit: 256
+    profiles:
+      - dashboard
   orchidarium:
     build:
       context: .
@@ -121,8 +134,6 @@ services:
       pull: true
     container_name: orchidarium
     depends_on:
-      grafana:
-        condition: service_started
       influxdb:
         condition: service_healthy
     # Provide access to the USB sensors.
@@ -160,6 +171,8 @@ services:
     ports:
       # Healthcheck is served on port 8085 on localhost.
       - '127.0.0.1:8085:8085'
+    networks:
+      - control
     restart: unless-stopped
     healthcheck:
       test: >
@@ -169,28 +182,26 @@ services:
       timeout: 5s
       retries: 3
     user: '${ORCHIDARIUM_UID}:${ORCHIDARIUM_GID}'
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-        reservations:
-          cpus: '1.0'
+    cpus: '0.75'
+    mem_limit: 768m
+    memswap_limit: 768m
+    oom_score_adj: 500
+    pids_limit: 512
     platform: linux/arm64
     privileged: true
     read_only: true
     tmpfs:
       # Runtime API snapshots shared between child processes.
       - /tmp/orchidarium:size=4m,uid=${ORCHIDARIUM_UID},gid=${ORCHIDARIUM_GID},mode=700
+networks:
+  control:
+    name: orchidarium-control
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${ORCHIDARIUM_DOCKER_SUBNET:-172.31.240.0/24}
 volumes:
   mysql-data:
     driver: local
-    driver_opts:
-      o: "size=500m,uid=0"
-      device: tmpfs
-      type: tmpfs
   influxdb-data:
     driver: local
-    driver_opts:
-      o: "size=10g,uid=0"
-      device: tmpfs
-      type: tmpfs

@@ -83,6 +83,7 @@ _require_environment()
         MYSQL_PASSWORD \
         MYSQL_ROOT_PASSWORD \
         MYSQL_USER \
+        ORCHIDARIUM_DOCKER_SUBNET \
         ORCHIDARIUM_RUNTIME_DIR \
         QT_QPA_PLATFORM \
         TMPDIR \
