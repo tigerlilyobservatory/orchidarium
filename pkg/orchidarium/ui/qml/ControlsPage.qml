@@ -41,9 +41,9 @@ Item {
 
     function relayNameForIndex(i) {
         if (root.relayNameProvider)
-            return root.relayNameProvider(i)
+            return String(root.relayNameProvider(i)).slice(0, 10)
 
-        return "Relay " + (i + 1)
+        return ""
     }
 
     function relayStateForIndex(i) {
@@ -154,8 +154,8 @@ Item {
             anchors.top: parent.top
             anchors.topMargin: 20
             height: 44
-            text: "Relay states"
-            color: root.relaysFrozen ? "#9a9a9a" : "#222222"
+            text: "Hardware"
+            color: "#222222"
             font.pixelSize: 28
             font.bold: true
             verticalAlignment: Text.AlignVCenter
@@ -172,6 +172,16 @@ Item {
             anchors.topMargin: 18
             anchors.bottomMargin: 20
             spacing: 18
+
+            Text {
+                id: relaySectionTitle
+
+                Layout.fillWidth: true
+                text: "Relays"
+                color: root.relaysFrozen ? "#9a9a9a" : "#333333"
+                font.pixelSize: 18
+                font.bold: true
+            }
 
             Row {
                 Layout.fillWidth: true
@@ -225,15 +235,15 @@ Item {
                             Column {
                                 anchors.fill: parent
                                 anchors.margins: 8
-                                spacing: 6
+                                spacing: 4
 
                                 Text {
                                     width: parent.width
-                                    height: (parent.height - 6) / 2
+                                    height: (parent.height - 8) / 3
                                     text: root.relayNameForIndex(index)
                                     color: "white"
                                     font.bold: true
-                                    font.pixelSize: 22
+                                    font.pixelSize: 18
                                     minimumPixelSize: 6
                                     fontSizeMode: Text.Fit
                                     horizontalAlignment: Text.AlignHCenter
@@ -244,11 +254,26 @@ Item {
 
                                 Text {
                                     width: parent.width
-                                    height: (parent.height - 6) / 2
+                                    height: (parent.height - 8) / 3
+                                    text: String(index + 1)
+                                    color: "white"
+                                    font.bold: true
+                                    font.pixelSize: 24
+                                    minimumPixelSize: 6
+                                    fontSizeMode: Text.Fit
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                    wrapMode: Text.NoWrap
+                                    elide: Text.ElideRight
+                                }
+
+                                Text {
+                                    width: parent.width
+                                    height: (parent.height - 8) / 3
                                     text: root.relayStateForIndex(index).toUpperCase()
                                     color: "white"
                                     font.bold: true
-                                    font.pixelSize: 28
+                                    font.pixelSize: 24
                                     minimumPixelSize: 6
                                     fontSizeMode: Text.Fit
                                     horizontalAlignment: Text.AlignHCenter
@@ -313,6 +338,14 @@ Item {
                                 font.pixelSize: 9
                                 font.bold: true
                             }
+                        }
+
+                        Button {
+                            width: parent.width
+                            height: 36
+                            text: "Edit"
+
+                            onClicked: root.renameRelayRequested(index)
                         }
                     }
                 }

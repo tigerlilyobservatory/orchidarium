@@ -36,15 +36,22 @@ Window {
     }
 
     function relayNameForIndex(i) {
-        if (hasConfig && config.relayName)
-            return config.relayName(i)
+        let name = ""
 
-        return "Relay " + (i + 1)
+        if (hasConfig && config.relayName)
+            name = String(config.relayName(i)).trim()
+
+        if (name === "Relay " + (i + 1))
+            return ""
+
+        return name.slice(0, 10)
     }
 
     function renameRelay(i, name) {
+        let relayName = String(name).trim().slice(0, 10)
+
         if (hasConfig && config.setRelayName) {
-            config.setRelayName(i, name)
+            config.setRelayName(i, relayName)
         }
     }
 
@@ -187,7 +194,7 @@ Window {
                 spacing: 12
 
                 Text {
-                    text: "Rename Relay"
+                    text: "Edit relay name"
                     font.pixelSize: 18
                     font.bold: true
                 }
@@ -196,6 +203,7 @@ Window {
                     id: nameInput
 
                     placeholderText: "Enter name"
+                    maximumLength: 10
                 }
 
                 Row {

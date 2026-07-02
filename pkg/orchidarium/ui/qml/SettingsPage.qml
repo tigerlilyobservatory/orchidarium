@@ -97,6 +97,14 @@ Item {
             anchors.bottomMargin: 28
             spacing: 18
 
+            Text {
+                Layout.fillWidth: true
+                text: "Sensors"
+                color: "#333333"
+                font.pixelSize: 18
+                font.bold: true
+            }
+
             Rectangle {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 76
@@ -113,7 +121,7 @@ Item {
 
                     Text {
                         Layout.fillWidth: true
-                        text: "Sensor collection interval: " + root.intervalInputValue + "s."
+                        text: "Sensor collection interval: " + root.intervalInputValue + "s"
                         color: "#222222"
                         font.pixelSize: 16
                         verticalAlignment: Text.AlignVCenter
@@ -146,7 +154,7 @@ Item {
 
                     Text {
                         Layout.fillWidth: true
-                        text: "Max point backlog: " + root.maxPointBacklogDisplayValue() + "."
+                        text: "Max point backlog: " + root.maxPointBacklogDisplayValue()
                         color: "#222222"
                         font.pixelSize: 16
                         verticalAlignment: Text.AlignVCenter
