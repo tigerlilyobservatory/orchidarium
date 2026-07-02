@@ -65,8 +65,9 @@ tini
     │       ├── /health
     │       ├── /openapi.json
     │       ├── /ready
-    │       ├── /queue/backlog
-    │       └── /sensors/active
+    │       └── /metrics
+    │           ├── /queue/backlog
+    │           └── /sensors/active
     ├── hardware / orchidarium-hardware
     │   └── hardware main thread
     └── ui / orchidarium-ui
@@ -103,8 +104,8 @@ Returns the generated OpenAPI 3.1 specification for the Flask API. The document 
   "paths": {
     "/health": {},
     "/ready": {},
-    "/queue/backlog": {},
-    "/sensors/active": {},
+    "/metrics/queue/backlog": {},
+    "/metrics/sensors/active": {},
     "/openapi.json": {}
   }
 }
@@ -185,7 +186,7 @@ Reports scheduler readiness for the running controller. The endpoint returns HTT
 </details>
 
 <details>
-<summary>See more: GET /queue/backlog</summary>
+<summary>See more: GET /metrics/queue/backlog</summary>
 
 Returns the latest queue activity snapshot published by the metrics process. Top-level fields summarize all publisher queues. The `queues` object is keyed by publisher name, so keys such as `influxdb` are dynamic as publishers are added.
 
@@ -225,7 +226,7 @@ Returns the latest queue activity snapshot published by the metrics process. Top
 </details>
 
 <details>
-<summary>See more: GET /sensors/active</summary>
+<summary>See more: GET /metrics/sensors/active</summary>
 
 Returns the number of discovered sensor classes that are currently enabled.
 
@@ -261,7 +262,7 @@ publisher thread(s)
 - Each publisher drains only its own queue. This keeps a fast backend from consuming points intended for a slower or failing backend.
 - Publisher threads are created only for queues with backlog. Empty queues do not spawn publisher workers for that interval.
 - If a publisher pulls a datum and submission fails, the base `Publisher.publish()` method puts that datum back on the same publisher queue before raising.
-- Queue activity is sampled per queue for a one-hour rolling window. The API reads the latest metrics-process snapshot via `/queue/backlog`.
+- Queue activity is sampled per queue for a one-hour rolling window. The API reads the latest metrics-process snapshot via `/metrics/queue/backlog`.
 - `current_backlog` is the largest single publisher backlog. `total_current_backlog` is the sum of all publisher backlogs.
 - `/ready` compares `current_backlog` to `MAX_POINT_BACKLOG`; readiness fails when any single publisher queue is too far behind.
 - The queues are in-memory and local to the metrics process. Runtime state is snapshotted for the API process, but queued points themselves are not durable across a process restart.

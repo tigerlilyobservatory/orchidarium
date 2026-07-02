@@ -151,7 +151,7 @@ class OrchidariumAPI:
         """
         return _HEALTHY_RESPONSE_EXAMPLE
 
-    @webmethod(route='/queue/backlog', public=True, response_example=_QUEUE_RESPONSE_EXAMPLE)
+    @webmethod(route='/metrics/queue/backlog', public=True, response_example=_QUEUE_RESPONSE_EXAMPLE)
     def get_queue_backlog(self) -> QueueRegistryActivitySummaryResponse:
         """
         Return publisher queue backlog and rolling activity summaries.
@@ -161,7 +161,7 @@ class OrchidariumAPI:
         """
         return _QUEUE_RESPONSE_EXAMPLE
 
-    @webmethod(route='/sensors/active', public=True, response_example=ActiveSensorsResponse(active_sensors=3))
+    @webmethod(route='/metrics/sensors/active', public=True, response_example=ActiveSensorsResponse(active_sensors=3))
     def get_active_sensors(self) -> ActiveSensorsResponse:
         """
         Return the active sensor count.

@@ -1,5 +1,5 @@
 """
-Serve data queue metadata endpoints when in daemon mode.
+Serve metrics queue metadata endpoints when in daemon mode.
 """
 
 
@@ -30,7 +30,7 @@ def create_queue_api(app: Flask) -> None:
 
     log.debug(f'Creating queue API')
 
-    @app.get('/queue/backlog')
+    @app.get('/metrics/queue/backlog')
     def queue_backlog() -> ResponseReturnValue:
         """
         Return queue backlog and rolling activity summary.

@@ -1,5 +1,5 @@
 """
-Serve sensor metadata endpoints when in daemon mode.
+Serve metrics sensor metadata endpoints when in daemon mode.
 """
 
 
@@ -32,7 +32,7 @@ def create_sensor_api(app: Flask) -> None:
 
     log.debug(f'Creating sensor API')
 
-    @app.get('/sensors/active')
+    @app.get('/metrics/sensors/active')
     def active_sensors() -> ResponseReturnValue:
         """
         Return the number of active sensor types.
