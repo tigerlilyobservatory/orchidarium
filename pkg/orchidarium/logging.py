@@ -52,7 +52,8 @@ def _log_startup_preamble(level: int) -> None:
     _banner_logged = True
 
     log = logging.getLogger(__name__)
-    log.info(_BANNER)
+    sys.stdout.write(_BANNER)
+    sys.stdout.flush()
     log.info(f'Log level: {logging.getLevelName(level)}')
     log.info('Code copyright: Tiger Lily Plants LLC.')
 
