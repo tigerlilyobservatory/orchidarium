@@ -14,6 +14,7 @@
     - [API](#api)
     - [Metrics Queue Fanout](#metrics-queue-fanout)
   - [Development](#development)
+    - [Remote Ansible](#remote-ansible)
     - [Docker Compose](#docker-compose)
       - [Raspberry Pi Wi-Fi / SSH](#raspberry-pi-wi-fi--ssh)
       - [UI Display](#ui-display)
@@ -268,6 +269,42 @@ publisher thread(s)
 - The queues are in-memory and local to the metrics process. Runtime state is snapshotted for the API process, but queued points themselves are not durable across a process restart.
 
 ## Development
+
+### Remote Ansible
+
+Remote Raspberry Pi deployment lives under [`ansible/`](./ansible). The default inventory target is `orchidarium-rpi` at `172.16.0.35` on the `172.16.0.35/24` network, using SSH user `tigerlily` and the default Raspberry Pi password `raspberry`.
+
+Start Orchidarium remotely. This installs Docker and Pi helper packages, syncs the deployable source tree to `/home/tigerlily/orchidarium`, installs the Orchidarium udev rules, generates Grafana certificates, and runs Docker Compose on the Pi.
+
+   ```text
+   ./scripts/remote/up.sh
+   ```
+
+Reset the remote stack before starting it:
+
+   ```text
+   ./scripts/remote/up.sh --reset
+   ```
+
+Stop Orchidarium remotely. This runs Docker Compose down on the Pi and removes the installed Orchidarium udev rules.
+
+   ```text
+   ./scripts/remote/down.sh
+   ```
+
+Password-based SSH defaults require `sshpass` on the machine running Ansible unless SSH keys are configured. Override the target by editing [`ansible/inventory/hosts.yml`](./ansible/inventory/hosts.yml), or pass normal `ansible-playbook` arguments through either wrapper.
+
+Use the dashboard profile remotely the same way as local Compose:
+
+   ```text
+   COMPOSE_PROFILES=dashboard ./scripts/remote/up.sh
+   ```
+
+For a headless Pi without a Wayland session, run the remote stack offscreen:
+
+   ```text
+   QT_QPA_PLATFORM=offscreen WAYLAND_RUNTIME_DIR=/tmp ./scripts/remote/up.sh
+   ```
 
 ### Docker Compose
 

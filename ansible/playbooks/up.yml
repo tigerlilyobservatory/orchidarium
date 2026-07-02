@@ -1,0 +1,15 @@
+---
+- name: Install and start Orchidarium on Raspberry Pi
+  hosts: orchidarium
+  gather_facts: true
+  vars:
+    orchidarium_source_root: "{{ playbook_dir }}/../.."
+  roles:
+    - role: raspberry_pi
+    - role: orchidarium_source
+    - role: orchidarium_udev
+      vars:
+        orchidarium_udev_state: present
+    - role: orchidarium_compose
+      vars:
+        orchidarium_compose_state: up
