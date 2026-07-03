@@ -30,16 +30,23 @@ RUN apt update \
         libdbus-1-3 \
         libdrm2 \
         libegl1 \
+        libevent-2.1-7t64 \
         libfontconfig1 \
         libgbm1 \
         libgl1 \
         libglib2.0-0 \
         libhidapi-dev \
         libice6 \
+        libminizip1t64 \
         libnspr4 \
         libnss3 \
         libopengl0 \
+        libopus0 \
         libsm6 \
+        libsnappy1v5 \
+        libwebp7 \
+        libwebpdemux2 \
+        libwebpmux3 \
         libwayland-cursor0 \
         libwayland-egl1 \
         libx11-6 \
@@ -66,6 +73,7 @@ RUN apt update \
         libxi6 \
         libxkbcommon-x11-0 \
         libxkbcommon0 \
+        libxkbfile1 \
         libxrandr2 \
         libxrender1 \
         libxshmfence1 \
