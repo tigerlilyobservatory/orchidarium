@@ -14,7 +14,8 @@ Window {
         fullscreen: false,
         relayCount: 4,
         intervalSeconds: "60",
-        maxPointBacklog: "1000"
+        maxPointBacklog: "1000",
+        monitoringUrl: "https://grafana:3000"
     })
 
     readonly property bool hasConfig: typeof config !== "undefined" && config !== null
@@ -22,6 +23,7 @@ Window {
     readonly property int relayCount: hasConfig ? config.relayCount : defaultConfig.relayCount
     readonly property string intervalSeconds: hasConfig ? config.intervalSeconds : defaultConfig.intervalSeconds
     readonly property string maxPointBacklog: hasConfig ? config.maxPointBacklog : defaultConfig.maxPointBacklog
+    readonly property string monitoringUrl: hasConfig ? config.monitoringUrl : defaultConfig.monitoringUrl
 
     property var relayStates: []
 
@@ -112,6 +114,7 @@ Window {
         id: swipeView
 
         anchors.fill: parent
+        interactive: currentIndex !== 2
 
         ControlsPage {
             id: controlsPage
@@ -134,6 +137,22 @@ Window {
             id: metricsPage
         }
 
+        Item {
+            id: monitoringPageSlot
+
+            Loader {
+                id: monitoringPageLoader
+
+                anchors.fill: parent
+                active: swipeView.currentIndex === 2
+                source: active ? "MonitoringPage.qml" : ""
+
+                onLoaded: {
+                    item.monitoringUrl = root.monitoringUrl
+                }
+            }
+        }
+
         SettingsPage {
             id: settingsPage
 
@@ -150,6 +169,38 @@ Window {
         }
     }
 
+    Row {
+        id: pageSelector
+
+        z: 10
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.rightMargin: 20
+        anchors.topMargin: 36
+        spacing: 8
+
+        Repeater {
+            model: swipeView.count
+
+            delegate: Rectangle {
+                required property int index
+
+                width: 10
+                height: 10
+                radius: 5
+                color: swipeView.currentIndex === index ? "#222222" : "#d6d6d6"
+                border.color: "#222222"
+                border.width: swipeView.currentIndex === index ? 0 : 1
+
+                MouseArea {
+                    anchors.fill: parent
+
+                    onClicked: root.showPage(index)
+                }
+            }
+        }
+    }
+
     NavigationDrawer {
         id: navigationDrawer
 
@@ -158,7 +209,8 @@ Window {
 
         onControlsRequested: root.showPage(0)
         onMetricsRequested: root.showPage(1)
-        onSettingsRequested: root.showPage(2)
+        onMonitoringRequested: root.showPage(2)
+        onSettingsRequested: root.showPage(3)
     }
 
     Popup {

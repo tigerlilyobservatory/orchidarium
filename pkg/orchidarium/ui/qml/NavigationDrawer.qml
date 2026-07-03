@@ -9,6 +9,7 @@ Item {
 
     signal controlsRequested()
     signal metricsRequested()
+    signal monitoringRequested()
     signal settingsRequested()
 
     z: 20
@@ -115,8 +116,19 @@ Item {
 
             ItemDelegate {
                 Layout.fillWidth: true
-                text: "Settings"
+                text: "Monitoring"
                 highlighted: root.currentIndex === 2
+
+                onClicked: {
+                    root.monitoringRequested()
+                    navigationDrawer.close()
+                }
+            }
+
+            ItemDelegate {
+                Layout.fillWidth: true
+                text: "Settings"
+                highlighted: root.currentIndex === 3
 
                 onClicked: {
                     root.settingsRequested()

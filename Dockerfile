@@ -104,6 +104,7 @@ USER root
 RUN python -m pip install --no-cache-dir --no-compile . \
     && python -c "import orchidarium" \
     && python -c "from PySide6.QtGui import QGuiApplication" \
+    && python -c "from PySide6.QtWebEngineQuick import QtWebEngineQuick" \
     && python -c "from shutil import which; assert which('orchidarium'), 'orchidarium command not installed'" \
     && rm -rf ./pkg ./README.md ./LICENSE ./poetry.lock ./pyproject.toml
 

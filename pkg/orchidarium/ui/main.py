@@ -3,10 +3,12 @@ from __future__ import annotations
 
 import sys
 
+from os import getenv
 from pathlib import Path
 
 from PySide6.QtGui import QFont, QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
+from PySide6.QtWebEngineQuick import QtWebEngineQuick
 
 from orchidarium.ui.config import Config
 
@@ -14,10 +16,22 @@ from orchidarium.ui.config import Config
 UI_FONT_FAMILY = 'Roboto'
 
 
+def _initialize_webengine() -> None:
+    """
+    Initialize Qt WebEngine when a real display backend is available.
+    """
+    if getenv('QT_QPA_PLATFORM', '') == 'offscreen':
+        return
+
+    QtWebEngineQuick.initialize()
+
+
 def run() -> None:
     """
     Run the Qt/QML UI.
     """
+    _initialize_webengine()
+
     app = QGuiApplication(sys.argv)
     app.setFont(QFont(UI_FONT_FAMILY))
 
