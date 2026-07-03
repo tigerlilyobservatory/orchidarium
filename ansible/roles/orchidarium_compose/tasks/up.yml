@@ -1,4 +1,62 @@
 ---
+- name: Verify Docker subnet does not overlap SSH-visible routes
+  ansible.builtin.command:
+    cmd: python3 - "{{ orchidarium_docker_subnet }}" "{{ orchidarium_remote_cidr }}"
+    stdin: |
+      import ipaddress
+      import subprocess
+      import sys
+
+      docker_network = ipaddress.ip_network(sys.argv[1], strict=False)
+      remote_network = ipaddress.ip_network(sys.argv[2], strict=False)
+      docker_interfaces = ('br-', 'docker', 'veth')
+      failures = []
+
+      if docker_network.overlaps(remote_network):
+          failures.append(
+              f'ORCHIDARIUM_DOCKER_SUBNET {docker_network} overlaps the declared Raspberry Pi network {remote_network}'
+          )
+
+      routes = subprocess.run(
+          ['ip', '-o', 'route', 'show'],
+          check=True,
+          capture_output=True,
+          text=True,
+      ).stdout
+
+      for route_line in routes.splitlines():
+          route_parts = route_line.split()
+
+          if not route_parts or route_parts[0] == 'default':
+              continue
+
+          try:
+              route_network = ipaddress.ip_network(route_parts[0], strict=False)
+          except ValueError:
+              continue
+
+          interface = ''
+
+          if 'dev' in route_parts:
+              interface_index = route_parts.index('dev') + 1
+
+              if interface_index < len(route_parts):
+                  interface = route_parts[interface_index]
+
+          if interface.startswith(docker_interfaces):
+              continue
+
+          if docker_network.overlaps(route_network):
+              failures.append(
+                  f'ORCHIDARIUM_DOCKER_SUBNET {docker_network} overlaps host route {route_network} on {interface or "unknown interface"}'
+              )
+
+      if failures:
+          sys.stderr.write('\n'.join(failures))
+          sys.stderr.write('\nChoose an ORCHIDARIUM_DOCKER_SUBNET that does not overlap Wi-Fi, LAN, VPN, or other host routes.\n')
+          sys.exit(1)
+  changed_when: false
+
 - name: Start Orchidarium with Docker Compose
   become: true
   ansible.builtin.shell: |
@@ -10,4 +68,3 @@
     executable: /bin/bash
   environment:
     COMPOSE_PROFILES: "{{ orchidarium_compose_profiles }}"
-

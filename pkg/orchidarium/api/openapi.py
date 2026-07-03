@@ -9,7 +9,7 @@ from copy import deepcopy
 from functools import lru_cache
 from http import HTTPStatus
 from importlib.metadata import PackageNotFoundError, version
-from typing import Any, cast
+from typing import TYPE_CHECKING
 
 import logging
 
@@ -31,6 +31,9 @@ from orchidarium.api.schemas import (
     QueueRegistryActivitySummaryResponse,
     ThreadPoolHealthResponse
 )
+
+if TYPE_CHECKING:
+    from typing import Any
 
 
 log = logging.getLogger(__name__)
@@ -278,7 +281,7 @@ def generate_openapi_spec() -> dict[str, Any]:
         )
     ).generate()
 
-    spec = cast(dict[str, Any], object_to_json(document))
+    spec: dict[str, Any] = object_to_json(document)
     _set_error_response(spec, '/health', 'Controller liveness failed.')
     _set_error_response(spec, '/ready', 'Controller readiness failed.')
     _document_openapi_endpoint(spec)

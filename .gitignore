@@ -3,6 +3,7 @@
 
 .vscode/
 .ansible/
+.orchidarium/
 certs/
 scripts/.env.sh
 

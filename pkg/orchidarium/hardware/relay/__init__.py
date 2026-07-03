@@ -1,7 +1,12 @@
+from __future__ import annotations
+
 from importlib import import_module
-from typing import Any
+from typing import TYPE_CHECKING
 
 from ._base import BaseRelay, BaseSwitch
+
+if TYPE_CHECKING:
+    from typing import Any
 
 
 _i2c_relay_module: Any = import_module(f'{__name__}.8x2_i2c_relay')

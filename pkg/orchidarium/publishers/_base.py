@@ -6,9 +6,12 @@ ABC that defines the API for publishing metrics.
 from __future__ import annotations
 
 from abc import abstractmethod, ABC
-from typing import Any, Self
+from typing import TYPE_CHECKING
 
 from orchidarium.data.queue import DataQueue, MetricDatum
+
+if TYPE_CHECKING:
+    from typing import Any, Self
 
 
 class Publisher(ABC):

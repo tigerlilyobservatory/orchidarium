@@ -1,9 +1,10 @@
 import QtQuick
 import QtQuick.Window
 import QtQuick.Controls
-import QtQuick.Layouts
 
 Window {
+    id: root
+
     width: 720
     height: 1280
     visible: true
@@ -11,16 +12,24 @@ Window {
 
     property var defaultConfig: ({
         fullscreen: false,
-        relayCount: 4
+        relayCount: 4,
+        intervalSeconds: "60",
+        maxPointBacklog: "1000",
+        monitoringUrl: "https://grafana:3000",
+        readinessUrl: "http://127.0.0.1:8085/ready"
     })
 
     readonly property bool hasConfig: typeof config !== "undefined" && config !== null
     readonly property bool fullscreenEnabled: hasConfig ? config.fullscreen : defaultConfig.fullscreen
     readonly property int relayCount: hasConfig ? config.relayCount : defaultConfig.relayCount
-
-    visibility: fullscreenEnabled ? Window.FullScreen : Window.Windowed
+    readonly property string intervalSeconds: hasConfig ? config.intervalSeconds : defaultConfig.intervalSeconds
+    readonly property string maxPointBacklog: hasConfig ? config.maxPointBacklog : defaultConfig.maxPointBacklog
+    readonly property string monitoringUrl: hasConfig ? config.monitoringUrl : defaultConfig.monitoringUrl
+    readonly property string readinessUrl: hasConfig ? config.readinessUrl : defaultConfig.readinessUrl
 
     property var relayStates: []
+
+    visibility: fullscreenEnabled ? Window.FullScreen : Window.Windowed
 
     Component.onCompleted: {
         relayStates = Array(relayCount).fill("auto")
@@ -31,15 +40,31 @@ Window {
     }
 
     function relayNameForIndex(i) {
+        let name = ""
+
         if (hasConfig && config.relayName)
-            return config.relayName(i)
-        return "Relay " + (i + 1)
+            name = String(config.relayName(i)).trim()
+
+        if (name === "Relay " + (i + 1))
+            return ""
+
+        return name.slice(0, 10)
     }
 
     function renameRelay(i, name) {
+        let relayName = String(name).trim().slice(0, 10)
+
         if (hasConfig && config.setRelayName) {
-            config.setRelayName(i, name)
+            config.setRelayName(i, relayName)
         }
+    }
+
+    function commitRelayRename() {
+        if (renamePopup.relayIndex >= 0)
+            renameRelay(renamePopup.relayIndex, nameInput.text)
+
+        nameInput.focus = false
+        renamePopup.close()
     }
 
     function setRelayState(i, state) {
@@ -48,187 +73,214 @@ Window {
         relayStates = updated
     }
 
-    function sliderValueForState(state) {
-        if (state === "on")
-            return 0
-        if (state === "auto")
-            return 1
-        return 2
+    function setIntervalSeconds(value) {
+        if (hasConfig && config.setIntervalSeconds) {
+            config.setIntervalSeconds(value)
+            settingsPage.intervalInputValue = config.intervalSeconds
+        }
     }
 
-    function stateForSliderValue(value) {
-        if (value < 0.5)
-            return "on"
-        if (value < 1.5)
-            return "auto"
-        return "off"
+    function setMaxPointBacklog(value) {
+        if (hasConfig && config.setMaxPointBacklog) {
+            config.setMaxPointBacklog(value)
+            settingsPage.maxPointBacklogInputValue = config.maxPointBacklog
+        }
+    }
+
+    function showPage(index) {
+        swipeView.currentIndex = index
     }
 
     Connections {
         target: hasConfig ? config : null
 
         function onRelayNamesChanged() {
-            relayRepeater.model = 0
-            relayRepeater.model = relayCount
+            controlsPage.refreshRelayModel()
         }
 
         function onRelayCountChanged() {
-            relayRepeater.model = 0
-            relayRepeater.model = relayCount
+            controlsPage.refreshRelayModel()
             relayStates = Array(relayCount).fill("auto")
+        }
+
+        function onIntervalSecondsChanged() {
+            settingsPage.intervalInputValue = config.intervalSeconds
+        }
+
+        function onMaxPointBacklogChanged() {
+            settingsPage.maxPointBacklogInputValue = config.maxPointBacklog
         }
     }
 
     SwipeView {
         id: swipeView
+
         anchors.fill: parent
+        interactive: currentIndex !== 1
 
-        Item {
-            Row {
-                anchors.fill: parent
-                anchors.margins: 20
-                spacing: 10
+        ControlsPage {
+            id: controlsPage
 
-                Repeater {
-                    id: relayRepeater
-                    model: relayCount
+            relayCount: root.relayCount
+            relayStates: root.relayStates
+            relayNameProvider: root.relayNameForIndex
 
-                    delegate: Column {
-                        required property int index
+            onRelayStateChanged: function(index, state) {
+                root.setRelayState(index, state)
+            }
 
-                        width: (parent.width - ((relayCount - 1) * 10)) / relayCount
-                        spacing: 12
-
-                        Rectangle {
-                            width: parent.width
-                            height: 120
-                            radius: 12
-
-                            color: relayStates[index] === "on" ? "#4CAF50"
-                                 : relayStates[index] === "off" ? "#F44336"
-                                 : "#9E9E9E"
-
-                            border.color: "#333333"
-                            border.width: 2
-
-                            MouseArea {
-                                anchors.fill: parent
-                                onPressAndHold: {
-                                    renamePopup.relayIndex = index
-                                    renamePopup.open()
-                                }
-                            }
-
-                            Column {
-                                anchors.fill: parent
-                                anchors.margins: 8
-                                spacing: 6
-
-                                Text {
-                                    width: parent.width
-                                    height: (parent.height - 6) / 2
-                                    text: relayNameForIndex(index)
-                                    color: "white"
-                                    font.bold: true
-                                    font.pixelSize: 22
-                                    minimumPixelSize: 6
-                                    fontSizeMode: Text.Fit
-                                    horizontalAlignment: Text.AlignHCenter
-                                    verticalAlignment: Text.AlignVCenter
-                                    wrapMode: Text.NoWrap
-                                    elide: Text.ElideRight
-                                }
-
-                                Text {
-                                    width: parent.width
-                                    height: (parent.height - 6) / 2
-                                    text: relayStates[index].toUpperCase()
-                                    color: "white"
-                                    font.bold: true
-                                    font.pixelSize: 28
-                                    minimumPixelSize: 6
-                                    fontSizeMode: Text.Fit
-                                    horizontalAlignment: Text.AlignHCenter
-                                    verticalAlignment: Text.AlignVCenter
-                                    wrapMode: Text.NoWrap
-                                    elide: Text.ElideRight
-                                }
-                            }
-                        }
-
-                        Slider {
-                            id: relaySlider
-
-                            property string currentRelayState: relayStates[index]
-
-                            width: parent.width
-                            from: 0
-                            to: 2
-                            stepSize: 1
-                            snapMode: Slider.SnapAlways
-
-                            Component.onCompleted: value = sliderValueForState(currentRelayState)
-
-                            onCurrentRelayStateChanged: {
-                                let nextValue = sliderValueForState(currentRelayState)
-                                if (value !== nextValue)
-                                    value = nextValue
-                            }
-
-                            onMoved: setRelayState(index, stateForSliderValue(value))
-                        }
-
-                        Row {
-                            width: parent.width
-
-                            Text {
-                                text: "ON"
-                                width: parent.width / 3
-                                horizontalAlignment: Text.AlignLeft
-                                color: "#333333"
-                                font.pixelSize: 9
-                                font.bold: true
-                            }
-
-                            Text {
-                                text: "AUTO"
-                                width: parent.width / 3
-                                horizontalAlignment: Text.AlignHCenter
-                                color: "#333333"
-                                font.pixelSize: 9
-                                font.bold: true
-                            }
-
-                            Text {
-                                text: "OFF"
-                                width: parent.width / 3
-                                horizontalAlignment: Text.AlignRight
-                                color: "#333333"
-                                font.pixelSize: 9
-                                font.bold: true
-                            }
-                        }
-                    }
-                }
+            onRenameRelayRequested: function(index) {
+                renamePopup.relayIndex = index
+                renamePopup.open()
             }
         }
 
         Item {
-            Rectangle {
-                anchors.fill: parent
-                color: "#eeeeee"
+            id: monitoringPageSlot
 
-                Text {
-                    anchors.centerIn: parent
-                    text: "Settings Page 2"
-                    color: "#333333"
+            Loader {
+                id: monitoringPageLoader
+
+                anchors.fill: parent
+                active: swipeView.currentIndex === 1
+                source: active ? "MonitoringPage.qml" : ""
+
+                Binding {
+                    target: monitoringPageLoader.item
+                    property: "monitoringUrl"
+                    value: root.monitoringUrl
+                    when: monitoringPageLoader.status === Loader.Ready
+                }
+
+                Binding {
+                    target: monitoringPageLoader.item
+                    property: "refreshIntervalSeconds"
+                    value: root.intervalSeconds
+                    when: monitoringPageLoader.status === Loader.Ready
+                }
+            }
+        }
+
+        SettingsPage {
+            id: settingsPage
+
+            intervalSeconds: root.intervalSeconds
+            maxPointBacklog: root.maxPointBacklog
+
+            onIntervalCommitted: function(value) {
+                root.setIntervalSeconds(value)
+            }
+
+            onMaxPointBacklogCommitted: function(value) {
+                root.setMaxPointBacklog(value)
+            }
+        }
+    }
+
+    Item {
+        id: monitoringSwipeRails
+
+        z: 9
+        anchors.fill: parent
+        visible: swipeView.currentIndex === 1
+
+        Rectangle {
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            width: 56
+            color: "transparent"
+
+            MouseArea {
+                id: previousPageRail
+
+                anchors.fill: parent
+                preventStealing: true
+
+                property real pressX: 0
+
+                onPressed: pressX = mouse.x
+
+                onReleased: {
+                    if (mouse.x - pressX > 36)
+                        root.showPage(0)
+                }
+            }
+        }
+
+        Rectangle {
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            width: 56
+            color: "transparent"
+
+            MouseArea {
+                id: nextPageRail
+
+                anchors.fill: parent
+                preventStealing: true
+
+                property real pressX: 0
+
+                onPressed: pressX = mouse.x
+
+                onReleased: {
+                    if (pressX - mouse.x > 36)
+                        root.showPage(2)
                 }
             }
         }
     }
 
+    Row {
+        id: pageSelector
+
+        z: 10
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.rightMargin: 20
+        anchors.topMargin: 36
+        spacing: 8
+
+        Repeater {
+            model: swipeView.count
+
+            delegate: Rectangle {
+                required property int index
+
+                width: 10
+                height: 10
+                radius: 5
+                color: swipeView.currentIndex === index ? "#222222" : "#d6d6d6"
+                border.color: "#222222"
+                border.width: swipeView.currentIndex === index ? 0 : 1
+
+                MouseArea {
+                    anchors.fill: parent
+
+                    onClicked: root.showPage(index)
+                }
+            }
+        }
+    }
+
+    NavigationDrawer {
+        id: navigationDrawer
+
+        anchors.fill: parent
+        currentIndex: swipeView.currentIndex
+        readinessRefreshIntervalSeconds: root.intervalSeconds
+        readinessUrl: root.readinessUrl
+
+        onControlsRequested: root.showPage(0)
+        onMonitoringRequested: root.showPage(1)
+        onSettingsRequested: root.showPage(2)
+    }
+
     Popup {
         id: renamePopup
+
         modal: true
         focus: true
         anchors.centerIn: parent
@@ -237,23 +289,18 @@ Window {
 
         property int relayIndex: -1
 
-        // 👇 catches clicks outside content
         background: Rectangle {
-            color: "#80000000" // semi-transparent dark overlay
+            color: "#80000000"
 
             MouseArea {
                 anchors.fill: parent
+
                 onClicked: {
-                    if (renamePopup.relayIndex >= 0) {
-                        renameRelay(renamePopup.relayIndex, nameInput.text)
-                    }
-                    nameInput.focus = false
-                    renamePopup.close()
+                    root.commitRelayRename()
                 }
             }
         }
 
-        // 👇 actual popup content
         contentItem: Rectangle {
             anchors.centerIn: parent
             width: 300
@@ -267,14 +314,19 @@ Window {
                 spacing: 12
 
                 Text {
-                    text: "Rename Relay"
+                    text: "Edit relay name"
                     font.pixelSize: 18
                     font.bold: true
                 }
 
                 TextField {
                     id: nameInput
+
                     placeholderText: "Enter name"
+                    maximumLength: 10
+
+                    Keys.onReturnPressed: root.commitRelayRename()
+                    Keys.onEnterPressed: root.commitRelayRename()
                 }
 
                 Row {
@@ -283,6 +335,7 @@ Window {
 
                     Button {
                         text: "Cancel"
+
                         onClicked: {
                             nameInput.focus = false
                             renamePopup.close()
@@ -290,13 +343,10 @@ Window {
                     }
 
                     Button {
-                        text: "Save"
+                        text: "OK"
+
                         onClicked: {
-                            if (renamePopup.relayIndex >= 0) {
-                                renameRelay(renamePopup.relayIndex, nameInput.text)
-                            }
-                            nameInput.focus = false
-                            renamePopup.close()
+                            root.commitRelayRename()
                         }
                     }
                 }

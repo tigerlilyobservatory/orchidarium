@@ -11,13 +11,20 @@ from collections import deque
 from datetime import datetime, timedelta, timezone
 from queue import Empty, Queue
 from threading import Lock
-from typing import Literal, Mapping, Protocol
+from typing import TYPE_CHECKING, Protocol
 
 from attrs import define, field
 
+if TYPE_CHECKING:
+    from typing import Literal, Mapping
+
 
 MetricField = bool | int | float | str
-_QueueAction = Literal['initialized', 'enqueued', 'dequeued']
+
+if TYPE_CHECKING:
+    _QueueAction = Literal['initialized', 'enqueued', 'dequeued']
+else:
+    _QueueAction = str
 
 
 log = logging.getLogger(__name__)

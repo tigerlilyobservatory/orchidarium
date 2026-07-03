@@ -13,11 +13,14 @@ from datetime import datetime, timedelta
 from random import random
 from threading import Lock
 from time import sleep
-from typing import Any, Final
+from typing import TYPE_CHECKING
 
 from smbus2 import SMBus
 
 from ._base import BaseRelay, BaseSwitch
+
+if TYPE_CHECKING:
+    from typing import Any, Final
 
 
 __all__ = [
