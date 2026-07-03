@@ -8,6 +8,8 @@ Item {
 
     property string monitoringUrl: "https://grafana:3000"
     property string currentUrl: monitoringUrl
+    property string refreshIntervalSeconds: "60"
+    property int secondsUntilRefresh: refreshInterval()
 
     function normalizedUrl(value) {
         let nextUrl = String(value).trim()
@@ -21,12 +23,44 @@ Item {
         return nextUrl
     }
 
+    function refreshInterval() {
+        return Math.max(5, Math.round(Number(refreshIntervalSeconds) || 60))
+    }
+
+    function resetRefreshCountdown() {
+        secondsUntilRefresh = refreshInterval()
+    }
+
+    function refreshPage() {
+        grafanaView.reload()
+        resetRefreshCountdown()
+    }
+
     function loadUrl(value) {
         currentUrl = normalizedUrl(value)
         grafanaView.url = currentUrl
+        resetRefreshCountdown()
     }
 
     onMonitoringUrlChanged: loadUrl(monitoringUrl)
+    onRefreshIntervalSecondsChanged: resetRefreshCountdown()
+
+    Timer {
+        id: refreshTimer
+
+        interval: 1000
+        repeat: true
+        running: true
+
+        onTriggered: {
+            if (root.secondsUntilRefresh <= 1) {
+                root.refreshPage()
+                return
+            }
+
+            root.secondsUntilRefresh -= 1
+        }
+    }
 
     Rectangle {
         anchors.fill: parent
@@ -64,32 +98,17 @@ Item {
             RowLayout {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 44
-                spacing: 10
 
-                TextField {
-                    id: addressBar
-
+                Item {
                     Layout.fillWidth: true
-                    text: root.currentUrl
-                    selectByMouse: true
-
-                    onAccepted: root.loadUrl(text)
                 }
 
                 Button {
-                    Layout.preferredWidth: 64
+                    Layout.preferredWidth: 132
                     Layout.preferredHeight: 42
-                    text: "Go"
+                    text: "Reload in " + root.secondsUntilRefresh + "s"
 
-                    onClicked: root.loadUrl(addressBar.text)
-                }
-
-                Button {
-                    Layout.preferredWidth: 92
-                    Layout.preferredHeight: 42
-                    text: "Reload"
-
-                    onClicked: grafanaView.reload()
+                    onClicked: root.refreshPage()
                 }
             }
 

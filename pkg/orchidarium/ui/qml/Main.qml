@@ -116,7 +116,7 @@ Window {
         id: swipeView
 
         anchors.fill: parent
-        interactive: currentIndex !== 2
+        interactive: currentIndex !== 1
 
         ControlsPage {
             id: controlsPage
@@ -135,10 +135,6 @@ Window {
             }
         }
 
-        DevicePage {
-            id: devicePage
-        }
-
         Item {
             id: monitoringPageSlot
 
@@ -146,11 +142,21 @@ Window {
                 id: monitoringPageLoader
 
                 anchors.fill: parent
-                active: swipeView.currentIndex === 2
+                active: swipeView.currentIndex === 1
                 source: active ? "MonitoringPage.qml" : ""
 
-                onLoaded: {
-                    item.monitoringUrl = root.monitoringUrl
+                Binding {
+                    target: monitoringPageLoader.item
+                    property: "monitoringUrl"
+                    value: root.monitoringUrl
+                    when: monitoringPageLoader.status === Loader.Ready
+                }
+
+                Binding {
+                    target: monitoringPageLoader.item
+                    property: "refreshIntervalSeconds"
+                    value: root.intervalSeconds
+                    when: monitoringPageLoader.status === Loader.Ready
                 }
             }
         }
@@ -212,9 +218,8 @@ Window {
         readinessUrl: root.readinessUrl
 
         onControlsRequested: root.showPage(0)
-        onDeviceRequested: root.showPage(1)
-        onMonitoringRequested: root.showPage(2)
-        onSettingsRequested: root.showPage(3)
+        onMonitoringRequested: root.showPage(1)
+        onSettingsRequested: root.showPage(2)
     }
 
     Popup {

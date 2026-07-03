@@ -14,7 +14,6 @@ Item {
     readonly property string deviceReadinessText: deviceReadinessKnown ? (deviceReady ? "Ready" : "Not ready") : "Checking"
 
     signal controlsRequested()
-    signal deviceRequested()
     signal monitoringRequested()
     signal settingsRequested()
 
@@ -145,7 +144,7 @@ Item {
             ItemDelegate {
                 Layout.fillWidth: true
                 text: "Monitoring"
-                highlighted: root.currentIndex === 2
+                highlighted: root.currentIndex === 1
 
                 onClicked: {
                     root.monitoringRequested()
@@ -156,7 +155,7 @@ Item {
             ItemDelegate {
                 Layout.fillWidth: true
                 text: "Settings"
-                highlighted: root.currentIndex === 3
+                highlighted: root.currentIndex === 2
 
                 onClicked: {
                     root.settingsRequested()
@@ -172,7 +171,9 @@ Item {
                 id: deviceDelegate
 
                 Layout.fillWidth: true
-                highlighted: root.currentIndex === 1
+                Layout.preferredHeight: 56
+                highlighted: false
+                implicitHeight: 56
                 ToolTip.visible: hovered
                 ToolTip.text: "Readiness: " + root.deviceReadinessText
 
@@ -209,8 +210,7 @@ Item {
                 }
 
                 onClicked: {
-                    root.deviceRequested()
-                    navigationDrawer.close()
+                    root.refreshReadiness()
                 }
             }
         }
