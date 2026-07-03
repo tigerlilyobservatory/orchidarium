@@ -23,19 +23,31 @@ USER root
 RUN apt update \
     && apt install -y --no-install-recommends \
         fonts-roboto \
+        libasound2 \
+        libatk-bridge2.0-0 \
+        libatk1.0-0 \
+        libcups2 \
         libdbus-1-3 \
+        libdrm2 \
         libegl1 \
         libfontconfig1 \
+        libgbm1 \
         libgl1 \
         libglib2.0-0 \
         libhidapi-dev \
         libice6 \
+        libnspr4 \
+        libnss3 \
         libopengl0 \
         libsm6 \
         libwayland-cursor0 \
         libwayland-egl1 \
         libx11-6 \
         libx11-xcb1 \
+        libxcomposite1 \
+        libxdamage1 \
+        libxext6 \
+        libxfixes3 \
         libxcb-cursor0 \
         libxcb-icccm4 \
         libxcb-image0 \
@@ -54,7 +66,10 @@ RUN apt update \
         libxi6 \
         libxkbcommon-x11-0 \
         libxkbcommon0 \
+        libxrandr2 \
         libxrender1 \
+        libxshmfence1 \
+        libxtst6 \
     && rm -rf /var/lib/apt/lists/*
 
 ENV TINI_VERSION=${TINI_VERSION}
