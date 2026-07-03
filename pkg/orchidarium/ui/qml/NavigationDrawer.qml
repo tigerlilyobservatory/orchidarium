@@ -112,66 +112,83 @@ Item {
             color: "#ffffff"
         }
 
-        ColumnLayout {
+        Item {
+            id: drawerContents
+
             anchors.fill: parent
             anchors.margins: 16
-            spacing: 8
 
-            Item {
-                Layout.fillWidth: true
-                Layout.preferredHeight: 18
-            }
+            ColumnLayout {
+                id: navigationLinks
 
-            Text {
-                Layout.fillWidth: true
-                text: "Orchidarium"
-                color: "#222222"
-                font.pixelSize: 22
-                font.bold: true
-            }
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                spacing: 8
 
-            ItemDelegate {
-                Layout.fillWidth: true
-                text: "Hardware"
-                highlighted: root.currentIndex === 0
+                Item {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 18
+                }
 
-                onClicked: {
-                    root.controlsRequested()
-                    navigationDrawer.close()
+                Text {
+                    Layout.fillWidth: true
+                    text: "Orchidarium"
+                    color: "#222222"
+                    font.pixelSize: 22
+                    font.bold: true
+                }
+
+                ItemDelegate {
+                    Layout.fillWidth: true
+                    text: "Hardware"
+                    highlighted: root.currentIndex === 0
+
+                    onClicked: {
+                        root.controlsRequested()
+                        navigationDrawer.close()
+                    }
+                }
+
+                ItemDelegate {
+                    Layout.fillWidth: true
+                    text: "Monitoring"
+                    highlighted: root.currentIndex === 1
+
+                    onClicked: {
+                        root.monitoringRequested()
+                        navigationDrawer.close()
+                    }
+                }
+
+                ItemDelegate {
+                    Layout.fillWidth: true
+                    text: "Settings"
+                    highlighted: root.currentIndex === 2
+
+                    onClicked: {
+                        root.settingsRequested()
+                        navigationDrawer.close()
+                    }
                 }
             }
 
-            ItemDelegate {
-                Layout.fillWidth: true
-                text: "Monitoring"
-                highlighted: root.currentIndex === 1
-
-                onClicked: {
-                    root.monitoringRequested()
-                    navigationDrawer.close()
-                }
-            }
-
-            ItemDelegate {
-                Layout.fillWidth: true
-                text: "Settings"
-                highlighted: root.currentIndex === 2
-
-                onClicked: {
-                    root.settingsRequested()
-                    navigationDrawer.close()
-                }
-            }
-
-            Item {
-                Layout.fillHeight: true
+            Rectangle {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: deviceDelegate.top
+                anchors.bottomMargin: 8
+                height: 1
+                color: "#eeeeee"
             }
 
             ItemDelegate {
                 id: deviceDelegate
 
-                Layout.fillWidth: true
-                Layout.preferredHeight: 56
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                height: 56
                 highlighted: false
                 implicitHeight: 56
                 ToolTip.visible: hovered
