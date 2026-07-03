@@ -177,6 +177,62 @@ Window {
         }
     }
 
+    Item {
+        id: monitoringSwipeRails
+
+        z: 9
+        anchors.fill: parent
+        visible: swipeView.currentIndex === 1
+
+        Rectangle {
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            width: 56
+            color: "transparent"
+
+            MouseArea {
+                id: previousPageRail
+
+                anchors.fill: parent
+                preventStealing: true
+
+                property real pressX: 0
+
+                onPressed: pressX = mouse.x
+
+                onReleased: {
+                    if (mouse.x - pressX > 36)
+                        root.showPage(0)
+                }
+            }
+        }
+
+        Rectangle {
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            width: 56
+            color: "transparent"
+
+            MouseArea {
+                id: nextPageRail
+
+                anchors.fill: parent
+                preventStealing: true
+
+                property real pressX: 0
+
+                onPressed: pressX = mouse.x
+
+                onReleased: {
+                    if (pressX - mouse.x > 36)
+                        root.showPage(2)
+                }
+            }
+        }
+    }
+
     Row {
         id: pageSelector
 
