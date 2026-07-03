@@ -1,8 +1,8 @@
 module ui
 
 ControlsPage 1.0 ControlsPage.qml
+DevicePage 1.0 DevicePage.qml
 Main 1.0 Main.qml
-MetricsPage 1.0 MetricsPage.qml
 MonitoringPage 1.0 MonitoringPage.qml
 NavigationDrawer 1.0 NavigationDrawer.qml
 SettingsPage 1.0 SettingsPage.qml

@@ -47,6 +47,7 @@ class Config(QObject):
     intervalSecondsChanged = Signal()
     maxPointBacklogChanged = Signal()
     monitoringUrlChanged = Signal()
+    readinessUrlChanged = Signal()
 
     def __init__(self, fullscreen: bool = False, relay_count: int = 4, relay_names: dict[int, str] | None = None):
         super().__init__()
@@ -79,6 +80,10 @@ class Config(QObject):
     @Property(str, notify=monitoringUrlChanged)
     def monitoringUrl(self) -> str:
         return env['ORCHIDARIUM_MONITORING_URL']
+
+    @Property(str, notify=readinessUrlChanged)
+    def readinessUrl(self) -> str:
+        return env['ORCHIDARIUM_READINESS_URL']
 
     @Slot(int, result=str)
     def relayName(self, index: int) -> str:

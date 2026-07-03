@@ -6,13 +6,52 @@ Item {
     id: root
 
     property int currentIndex: 0
+    property bool deviceReady: false
+    property bool deviceReadinessKnown: false
+    property string readinessRefreshIntervalSeconds: "60"
+    property string readinessUrl: "http://127.0.0.1:8085/ready"
+    readonly property int readinessRefreshIntervalMs: Math.max(5000, (Number(readinessRefreshIntervalSeconds) || 60) * 1000)
+    readonly property string deviceReadinessText: deviceReadinessKnown ? (deviceReady ? "Ready" : "Not ready") : "Checking"
 
     signal controlsRequested()
-    signal metricsRequested()
+    signal deviceRequested()
     signal monitoringRequested()
     signal settingsRequested()
 
     z: 20
+
+    onReadinessUrlChanged: refreshReadiness()
+
+    onReadinessRefreshIntervalSecondsChanged: {
+        readinessTimer.restart()
+        refreshReadiness()
+    }
+
+    function refreshReadiness() {
+        if (readinessUrl.length === 0) {
+            deviceReady = false
+            deviceReadinessKnown = true
+            return
+        }
+
+        let request = new XMLHttpRequest()
+
+        request.onreadystatechange = function() {
+            if (request.readyState !== 4)
+                return
+
+            deviceReadinessKnown = true
+            deviceReady = request.status >= 200 && request.status < 300
+        }
+
+        request.onerror = function() {
+            deviceReadinessKnown = true
+            deviceReady = false
+        }
+
+        request.open("GET", readinessUrl)
+        request.send()
+    }
 
     ToolButton {
         id: menuButton
@@ -94,22 +133,11 @@ Item {
 
             ItemDelegate {
                 Layout.fillWidth: true
-                text: "Hardware Overrides"
+                text: "Hardware"
                 highlighted: root.currentIndex === 0
 
                 onClicked: {
                     root.controlsRequested()
-                    navigationDrawer.close()
-                }
-            }
-
-            ItemDelegate {
-                Layout.fillWidth: true
-                text: "Metrics"
-                highlighted: root.currentIndex === 1
-
-                onClicked: {
-                    root.metricsRequested()
                     navigationDrawer.close()
                 }
             }
@@ -139,6 +167,63 @@ Item {
             Item {
                 Layout.fillHeight: true
             }
+
+            ItemDelegate {
+                id: deviceDelegate
+
+                Layout.fillWidth: true
+                highlighted: root.currentIndex === 1
+                ToolTip.visible: hovered
+                ToolTip.text: "Readiness: " + root.deviceReadinessText
+
+                contentItem: RowLayout {
+                    spacing: 10
+
+                    Text {
+                        text: "Device"
+                        color: "#222222"
+                        font.pixelSize: 16
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    Rectangle {
+                        Layout.preferredWidth: readinessLabel.implicitWidth + 18
+                        Layout.preferredHeight: 24
+                        radius: 12
+                        color: root.deviceReady ? "#2e7d32" : "#c62828"
+
+                        Text {
+                            id: readinessLabel
+
+                            anchors.centerIn: parent
+                            text: root.deviceReadinessText
+                            color: "#ffffff"
+                            font.pixelSize: 11
+                            font.bold: true
+                        }
+                    }
+
+                    Item {
+                        Layout.fillWidth: true
+                    }
+                }
+
+                onClicked: {
+                    root.deviceRequested()
+                    navigationDrawer.close()
+                }
+            }
         }
+    }
+
+    Timer {
+        id: readinessTimer
+
+        interval: root.readinessRefreshIntervalMs
+        repeat: true
+        running: true
+        triggeredOnStart: true
+
+        onTriggered: root.refreshReadiness()
     }
 }

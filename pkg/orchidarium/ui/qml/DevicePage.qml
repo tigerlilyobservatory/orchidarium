@@ -13,7 +13,7 @@ Item {
             anchors.top: parent.top
             anchors.topMargin: 20
             height: 44
-            text: "Metrics"
+            text: "Device"
             color: "#222222"
             font.pixelSize: 28
             font.bold: true

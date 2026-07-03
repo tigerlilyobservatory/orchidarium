@@ -15,7 +15,8 @@ Window {
         relayCount: 4,
         intervalSeconds: "60",
         maxPointBacklog: "1000",
-        monitoringUrl: "https://grafana:3000"
+        monitoringUrl: "https://grafana:3000",
+        readinessUrl: "http://127.0.0.1:8085/ready"
     })
 
     readonly property bool hasConfig: typeof config !== "undefined" && config !== null
@@ -24,6 +25,7 @@ Window {
     readonly property string intervalSeconds: hasConfig ? config.intervalSeconds : defaultConfig.intervalSeconds
     readonly property string maxPointBacklog: hasConfig ? config.maxPointBacklog : defaultConfig.maxPointBacklog
     readonly property string monitoringUrl: hasConfig ? config.monitoringUrl : defaultConfig.monitoringUrl
+    readonly property string readinessUrl: hasConfig ? config.readinessUrl : defaultConfig.readinessUrl
 
     property var relayStates: []
 
@@ -133,8 +135,8 @@ Window {
             }
         }
 
-        MetricsPage {
-            id: metricsPage
+        DevicePage {
+            id: devicePage
         }
 
         Item {
@@ -206,9 +208,11 @@ Window {
 
         anchors.fill: parent
         currentIndex: swipeView.currentIndex
+        readinessRefreshIntervalSeconds: root.intervalSeconds
+        readinessUrl: root.readinessUrl
 
         onControlsRequested: root.showPage(0)
-        onMetricsRequested: root.showPage(1)
+        onDeviceRequested: root.showPage(1)
         onMonitoringRequested: root.showPage(2)
         onSettingsRequested: root.showPage(3)
     }
