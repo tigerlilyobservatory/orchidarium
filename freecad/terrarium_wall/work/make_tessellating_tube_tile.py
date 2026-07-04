@@ -467,9 +467,11 @@ def add_connector_stud(mesh, cx, cy):
 def make_straight_connector():
     mesh = Mesh()
     half_spacing = SOCKET_INSET
-    add_box(mesh, -half_spacing - 10.5, half_spacing + 10.5, -7.0, 7.0, 0.0, BRIDGE_THICKNESS)
-    add_connector_stud(mesh, -half_spacing, 0.0)
-    add_connector_stud(mesh, half_spacing, 0.0)
+    bridge_half_width = 7.0
+    bridge_half_length = half_spacing + bridge_half_width
+    add_box(mesh, -bridge_half_length, bridge_half_length, -bridge_half_width, bridge_half_width, 0.0, BRIDGE_THICKNESS)
+    for cx in (-half_spacing, half_spacing):
+        add_connector_stud(mesh, cx, 0.0)
     return mesh
 
 

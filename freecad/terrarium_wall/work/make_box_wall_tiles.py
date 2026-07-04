@@ -56,9 +56,11 @@ BOTTOM_NOTE_TEXT = "willow <3 emma"
 BOTTOM_NOTE_TILE_LABEL = "A11"
 BOTTOM_NOTE_PIXEL = 0.80
 BOTTOM_NOTE_GAP = 0.48
+POST_BODY_OUTSIDE_REACH = 8.0
 POST_STACK_CONNECTOR_OFFSET = 5.5
 POST_STACK_CONNECTOR_CHAMFER = 2.4
-POST_STACK_TAB_RIB = 0.28
+POST_STACK_STUD_SIZE = 9.70
+POST_STACK_TAB_RIB = 0.34
 POST_STACK_TAB_BAND = 1.05
 CORNER_FILLER_REACH = low.LOW_BASE
 CORNER_FILLER_EMBED = 0.05
@@ -1477,10 +1479,10 @@ def make_stack_sleeve(height=25.0, clearance=0.65, wall=3.0):
 
 def add_top_stack_tab(mesh, height, center=(0.0, 0.0)):
     cx, cy = center
-    s = base.STUD_SIZE / 2.0
+    s = POST_STACK_STUD_SIZE / 2.0
     z0 = height
     z1 = height + base.STUD_HEIGHT
-    tile.add_extruded_polygon(mesh, stack_connector_polygon(center, base.STUD_SIZE), z0, z1)
+    tile.add_extruded_polygon(mesh, stack_connector_polygon(center, POST_STACK_STUD_SIZE), z0, z1)
     base.add_box(
         mesh,
         cx - s - POST_STACK_TAB_RIB,
@@ -1500,6 +1502,18 @@ def stack_connector_polygon(center, size):
         (cx + s, cy - s),
         (cx + s, cy + s),
         (cx - s, cy + s),
+    ]
+
+
+def corner_post_body_polygon():
+    half = tile.POST_WIDTH / 2.0
+    outside = min(POST_BODY_OUTSIDE_REACH, half)
+    return [
+        (0.0, -outside),
+        (half, -outside),
+        (half, half),
+        (-outside, half),
+        (-outside, 0.0),
     ]
 
 
@@ -1574,14 +1588,7 @@ def make_stackable_corner_post(height, socket_positions):
     depth = base.SOCKET_DEPTH
     overlap = 0.04
     stack_center = (POST_STACK_CONNECTOR_OFFSET, POST_STACK_CONNECTOR_OFFSET)
-    chamfer = min(tile.POST_INSIDE_CHAMFER, tile.POST_WIDTH - 2.0)
-    body = [
-        (-half + chamfer, -half),
-        (half, -half),
-        (half, half),
-        (-half, half),
-        (-half, -half + chamfer),
-    ]
+    body = corner_post_body_polygon()
     sx, sy = stack_center
     # Bottom ring leaves an offset socket recess for the tab on the post below,
     # while preserving the chamfered-away inside corner of the post footprint.

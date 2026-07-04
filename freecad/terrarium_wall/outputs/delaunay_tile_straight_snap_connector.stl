@@ -1,4 +1,4 @@
-solid box_wall_straight_snap_connector
+solid delaunay_tile_straight_snap_connector
   facet normal 0.000000 0.000000 1.000000
     outer loop
       vertex -19.700000 -7.000000 3.000000
@@ -419,4 +419,4 @@ solid box_wall_straight_snap_connector
       vertex 7.475000 1.050000 6.650000
     endloop
   endfacet
-endsolid box_wall_straight_snap_connector
+endsolid delaunay_tile_straight_snap_connector
