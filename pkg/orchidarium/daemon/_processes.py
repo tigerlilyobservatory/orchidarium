@@ -104,7 +104,7 @@ def run() -> int:
     setproctitle('orchidarium')
 
     if not PROCESS_SPECS:
-        log.warning('No daemon processes configured')
+        log.debug('No daemon processes configured')
         return 0
 
     futures: dict[Future[int], ProcessSpec] = {}
@@ -113,7 +113,7 @@ def run() -> int:
     try:
         for process_spec in PROCESS_SPECS:
             futures[executor.submit(process_spec.target)] = process_spec
-            log.info(f'Started daemon process "{process_spec.name}"')
+            log.debug(f'Started daemon process "{process_spec.name}"')
 
         for future in as_completed(futures):
             process_spec = futures[future]
@@ -121,17 +121,17 @@ def run() -> int:
             try:
                 exit_code = future.result()
             except Exception:
-                log.exception(f'Daemon process "{process_spec.name}" failed')
+                log.debug(f'Daemon process "{process_spec.name}" failed', exc_info=True)
                 return 1
 
             if exit_code == 0:
-                log.info(f'Daemon process "{process_spec.name}" exited cleanly')
+                log.debug(f'Daemon process "{process_spec.name}" exited cleanly')
             else:
-                log.error(f'Daemon process "{process_spec.name}" exited with code {exit_code}')
+                log.debug(f'Daemon process "{process_spec.name}" exited with code {exit_code}')
 
             return exit_code
     except KeyboardInterrupt:
-        log.info('Daemon interrupted; shutting down child processes')
+        log.debug('Daemon interrupted; shutting down child processes')
         return 130
     finally:
         for future in futures:

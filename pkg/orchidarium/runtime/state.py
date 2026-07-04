@@ -13,7 +13,10 @@ from datetime import datetime, timezone
 from json import JSONDecodeError
 from pathlib import Path
 from threading import Lock
-from typing import Any
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import Any
 
 
 _state_lock = Lock()

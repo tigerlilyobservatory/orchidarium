@@ -141,8 +141,13 @@ services:
       # udev on /dev/humidity type devtmpfs (ro,nosuid,relatime,size=32847200k,nr_inodes=8211800,mode=755,inode64)
       # udev on /dev/soil type devtmpfs (ro,nosuid,relatime,size=32847200k,nr_inodes=8211800,mode=755,inode64)
       # udev on /dev/bus/usb type devtmpfs (ro,nosuid,relatime,size=32847200k,nr_inodes=8211800,mode=755,inode64)
-      - /dev/gpiomem:/dev/gpiomem:ro
       - /dev/bus/usb:/dev/bus/usb:ro
+      # Persisted user-defined UI configuration.
+      - type: bind
+        source: ${ORCHIDARIUM_CONFIG_DIR}
+        target: /opt/orchidarium/.orchidarium
+        bind:
+          create_host_path: false
       # Wayland display socket from the host desktop session.
       - type: bind
         source: ${WAYLAND_RUNTIME_DIR}
@@ -160,6 +165,9 @@ services:
       - INFLUXDB_TOKEN=${INFLUXDB_TOKEN}
       - INTERVAL=${INTERVAL}
       - MAX_POINT_BACKLOG=${MAX_POINT_BACKLOG}
+      - ORCHIDARIUM_MONITORING_URL=${ORCHIDARIUM_MONITORING_URL}
+      - ORCHIDARIUM_READINESS_URL=${ORCHIDARIUM_READINESS_URL}
+      - ORCHIDARIUM_STATE_PATH=${ORCHIDARIUM_STATE_PATH}
       - ORCHIDARIUM_RUNTIME_DIR=${ORCHIDARIUM_RUNTIME_DIR}
       - QT_QPA_PLATFORM=${QT_QPA_PLATFORM}
       - QT_QUICK_BACKEND=${QT_QUICK_BACKEND}
@@ -178,9 +186,9 @@ services:
       test: >
         curl -fsL http://localhost:8085/health && curl -fsL http://localhost:8085/ready
       start_period: 5s
-      interval: 30s
+      interval: 5s
       timeout: 5s
-      retries: 3
+      retries: 10
     user: '${ORCHIDARIUM_UID}:${ORCHIDARIUM_GID}'
     cpus: '0.75'
     mem_limit: 768m

@@ -9,6 +9,9 @@ UDEV_RULES_DIR="/etc/udev/rules.d"
 
 cd "${REPO_ROOT}"
 
+##
+# Set enough Compose environment defaults to stop the local stack.
+#   -> return::void
 _set_default_environment()
 {
     local default_qt_qpa_platform
@@ -67,10 +70,12 @@ _set_default_environment()
     export MYSQL_PASSWORD="${MYSQL_PASSWORD:-}"
     export MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD:-}"
     export MYSQL_USER="${MYSQL_USER:-}"
+    export ORCHIDARIUM_CONFIG_DIR="${ORCHIDARIUM_CONFIG_DIR:-./.orchidarium}"
     export ORCHIDARIUM_DOCKER_SUBNET="${ORCHIDARIUM_DOCKER_SUBNET:-172.31.240.0/24}"
     export ORCHIDARIUM_GID="${ORCHIDARIUM_GID:-$(id -g)}"
     export ORCHIDARIUM_HOME="${ORCHIDARIUM_HOME:-/tmp/orchidarium}"
     export ORCHIDARIUM_RUNTIME_DIR="${ORCHIDARIUM_RUNTIME_DIR:-/tmp/orchidarium}"
+    export ORCHIDARIUM_STATE_PATH="${ORCHIDARIUM_STATE_PATH:-/opt/orchidarium/.orchidarium/state.json}"
     export ORCHIDARIUM_UID="${ORCHIDARIUM_UID:-$(id -u)}"
     export ORCHIDARIUM_XDG_RUNTIME_DIR="${ORCHIDARIUM_XDG_RUNTIME_DIR:-${default_xdg_runtime_dir}}"
     export QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-${default_qt_qpa_platform}}"
@@ -88,6 +93,9 @@ _set_default_environment
 
 docker compose down "$@"
 
+##
+# Remove local Orchidarium udev rules when udev is available.
+#   -> return::void
 _remove_udev_rules()
 {
     if [ ! -d "${UDEV_RULES_DIR}" ] || ! command -v udevadm >/dev/null 2>&1; then

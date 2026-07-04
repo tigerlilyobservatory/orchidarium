@@ -1,0 +1,27 @@
+---
+# Defaults for the Orchidarium Raspberry Pi inventory group.
+orchidarium_remote_cidr: 172.16.0.35/24
+orchidarium_remote_root: "/home/{{ ansible_user }}/orchidarium"
+
+orchidarium_compose_profiles: "{{ lookup('env', 'COMPOSE_PROFILES') | default('', true) }}"
+orchidarium_compose_up_args: "{{ lookup('env', 'ORCHIDARIUM_REMOTE_COMPOSE_UP_ARGS') | default('-d --build', true) }}"
+orchidarium_compose_down_args: "{{ lookup('env', 'ORCHIDARIUM_REMOTE_COMPOSE_DOWN_ARGS') | default('', true) }}"
+
+orchidarium_debug: "{{ lookup('env', 'DEBUG') | default('', true) }}"
+orchidarium_docker_subnet: "{{ lookup('env', 'ORCHIDARIUM_DOCKER_SUBNET') | default('172.31.240.0/24', true) }}"
+orchidarium_qt_qpa_platform: "{{ lookup('env', 'QT_QPA_PLATFORM') | default('wayland', true) }}"
+orchidarium_qt_quick_backend: "{{ lookup('env', 'QT_QUICK_BACKEND') | default('', true) }}"
+orchidarium_wayland_display: "{{ lookup('env', 'WAYLAND_DISPLAY') | default('wayland-0', true) }}"
+orchidarium_wayland_runtime_dir: "{{ lookup('env', 'WAYLAND_RUNTIME_DIR') | default('/run/user/' ~ ansible_facts['user_uid'], true) }}"
+
+orchidarium_source_items:
+  - bin
+  - config
+  - pkg
+  - scripts
+  - Dockerfile
+  - LICENSE
+  - README.md
+  - compose.yaml
+  - poetry.lock
+  - pyproject.toml

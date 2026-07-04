@@ -11,8 +11,11 @@
   - [Motivation](#motivation)
   - [Documentation](#documentation)
     - [Runtime Hierarchy](#runtime-hierarchy)
+    - [Runtime Configuration](#runtime-configuration)
+    - [API](#api)
     - [Metrics Queue Fanout](#metrics-queue-fanout)
   - [Development](#development)
+    - [Remote Ansible](#remote-ansible)
     - [Docker Compose](#docker-compose)
       - [Raspberry Pi Wi-Fi / SSH](#raspberry-pi-wi-fi--ssh)
       - [UI Display](#ui-display)
@@ -62,9 +65,11 @@ tini
     ├── api / orchidarium-api
     │   └── Flask main thread
     │       ├── /health
+    │       ├── /openapi.json
     │       ├── /ready
-    │       ├── /queue/backlog
-    │       └── /sensors/active
+    │       └── /metrics
+    │           ├── /queue/backlog
+    │           └── /sensors/active
     ├── hardware / orchidarium-hardware
     │   └── hardware main thread
     └── ui / orchidarium-ui
@@ -80,7 +85,170 @@ tini
 - `sensor_*`: worker threads created by the metrics process during each collection interval, with one submitted task per discovered sensor.
 - `publisher_*`: worker threads created only for publisher queues with backlog, with one queue per database backend.
 
-`/ready` fails when any publisher queue backlog reaches `MAX_POINT_BACKLOG`, so schedulers can stop sending new work to a container that is falling behind.
+`/ready` fails when any publisher queue backlog reaches `MAX_POINT_BACKLOG`, so schedulers can stop sending new work to a container that is falling behind. Set `MAX_POINT_BACKLOG=0` to disable the backlog cap.
+
+### Runtime Configuration
+
+The UI persists user-defined runtime settings to `/opt/orchidarium/.orchidarium/state.json`. Docker Compose mounts `ORCHIDARIUM_CONFIG_DIR` at `/opt/orchidarium/.orchidarium`; local startup defaults that host directory to `./.orchidarium`.
+
+- `INTERVAL`: sensor collection interval in seconds. The minimum value is `5`.
+- `MAX_POINT_BACKLOG`: largest allowed publisher queue backlog before `/ready` fails. The minimum value is `0`, and `0` means no configured maximum.
+- `ORCHIDARIUM_STATE_PATH`: optional override for the state file path. This keeps the state location configurable as runtime domains are split into separate services.
+
+The process environment remains the fallback source for these values. State-file reads are cached for one second per process, so repeated checks inside one interval use the same snapshot instead of re-reading the file on every access.
+
+### API
+
+The API process serves JSON from the Flask app in `orchidarium.api`. In Docker Compose, it is exposed on `127.0.0.1:8085` by default.
+
+<details>
+<summary>See more: GET /openapi.json</summary>
+
+Returns the generated OpenAPI 3.1 specification for the Flask API. The document is generated with `python-openapi` from the typed response schemas in `orchidarium.api.schemas`.
+
+```json
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Orchidarium API",
+    "version": "0.0.1"
+  },
+  "paths": {
+    "/health": {},
+    "/ready": {},
+    "/metrics/queue/backlog": {},
+    "/metrics/sensors/active": {},
+    "/openapi.json": {}
+  }
+}
+```
+
+</details>
+
+<details>
+<summary>See more: GET /health</summary>
+
+Reports liveness for the running controller. The endpoint returns HTTP 200 when the metrics thread pool is running or healthy, the hardware process has a recent heartbeat, and no sensor workers have failed. It returns HTTP 503 with the same payload shape when liveness fails.
+
+`point_backlog` is included for debugging context, but backlog readiness does not decide the `/health` status.
+
+```json
+{
+  "status": "OK",
+  "hardware_process": {
+    "status": "healthy",
+    "process_name": "hardware",
+    "last_heartbeat_at": "2026-07-02T12:00:00+00:00",
+    "heartbeat_timeout_seconds": 5.0,
+    "heartbeat_age_seconds": 0.25,
+    "last_error": null
+  },
+  "point_backlog": {
+    "current_backlog": 0,
+    "max_point_backlog": 1000,
+    "ready": true
+  },
+  "thread_pool": {
+    "status": "healthy",
+    "expected_workers": 3,
+    "completed_workers": 3,
+    "failed_workers": 0,
+    "last_run_successful": true,
+    "successful_runs": 42,
+    "last_error": null
+  }
+}
+```
+
+</details>
+
+<details>
+<summary>See more: GET /ready</summary>
+
+Reports scheduler readiness for the running controller. The endpoint returns HTTP 200 only when the metrics thread pool is ready, the hardware process has a recent heartbeat, and the largest publisher queue backlog is below `MAX_POINT_BACKLOG`. A `MAX_POINT_BACKLOG` value of `0` disables the backlog cap. It returns HTTP 503 with the same payload shape when readiness fails.
+
+```json
+{
+  "status": "OK",
+  "hardware_process": {
+    "status": "healthy",
+    "process_name": "hardware",
+    "last_heartbeat_at": "2026-07-02T12:00:00+00:00",
+    "heartbeat_timeout_seconds": 5.0,
+    "heartbeat_age_seconds": 0.25,
+    "last_error": null
+  },
+  "point_backlog": {
+    "current_backlog": 0,
+    "max_point_backlog": 1000,
+    "ready": true
+  },
+  "thread_pool": {
+    "status": "healthy",
+    "expected_workers": 3,
+    "completed_workers": 3,
+    "failed_workers": 0,
+    "last_run_successful": true,
+    "successful_runs": 42,
+    "last_error": null
+  }
+}
+```
+
+</details>
+
+<details>
+<summary>See more: GET /metrics/queue/backlog</summary>
+
+Returns the latest queue activity snapshot published by the metrics process. Top-level fields summarize all publisher queues. The `queues` object is keyed by publisher name, so keys such as `influxdb` are dynamic as publishers are added.
+
+`current_backlog` is the largest single publisher backlog. `total_current_backlog` is the sum of all publisher backlogs.
+
+```json
+{
+  "current_backlog": 0,
+  "total_current_backlog": 0,
+  "publisher_count": 1,
+  "window_seconds": 3600,
+  "sample_count": 12,
+  "min_queue_length": 0,
+  "max_queue_length": 4,
+  "average_queue_length": 0.5,
+  "enqueued": 6,
+  "dequeued": 6,
+  "last_enqueued_at": "2026-07-02T12:00:00+00:00",
+  "last_dequeued_at": "2026-07-02T12:00:01+00:00",
+  "queues": {
+    "influxdb": {
+      "current_backlog": 0,
+      "window_seconds": 3600,
+      "sample_count": 12,
+      "min_queue_length": 0,
+      "max_queue_length": 4,
+      "average_queue_length": 0.5,
+      "enqueued": 6,
+      "dequeued": 6,
+      "last_enqueued_at": "2026-07-02T12:00:00+00:00",
+      "last_dequeued_at": "2026-07-02T12:00:01+00:00"
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary>See more: GET /metrics/sensors/active</summary>
+
+Returns the number of discovered sensor classes that are currently enabled.
+
+```json
+{
+  "active_sensors": 3
+}
+```
+
+</details>
 
 ### Metrics Queue Fanout
 
@@ -106,12 +274,54 @@ publisher thread(s)
 - Each publisher drains only its own queue. This keeps a fast backend from consuming points intended for a slower or failing backend.
 - Publisher threads are created only for queues with backlog. Empty queues do not spawn publisher workers for that interval.
 - If a publisher pulls a datum and submission fails, the base `Publisher.publish()` method puts that datum back on the same publisher queue before raising.
-- Queue activity is sampled per queue for a one-hour rolling window. The API reads the latest metrics-process snapshot via `/queue/backlog`.
+- Queue activity is sampled per queue for a one-hour rolling window. The API reads the latest metrics-process snapshot via `/metrics/queue/backlog`.
 - `current_backlog` is the largest single publisher backlog. `total_current_backlog` is the sum of all publisher backlogs.
-- `/ready` compares `current_backlog` to `MAX_POINT_BACKLOG`; readiness fails when any single publisher queue is too far behind.
+- `/ready` compares `current_backlog` to `MAX_POINT_BACKLOG`; readiness fails when any single publisher queue is too far behind. A `MAX_POINT_BACKLOG` value of `0` disables this readiness cap.
 - The queues are in-memory and local to the metrics process. Runtime state is snapshotted for the API process, but queued points themselves are not durable across a process restart.
 
 ## Development
+
+### Remote Ansible
+
+Remote Raspberry Pi deployment lives under [`ansible/`](./ansible). The default inventory target is `orchidarium-rpi` at `172.16.0.35` on the `172.16.0.35/24` network, using SSH user `tigerlily` and the default Raspberry Pi password `raspberry`.
+
+Start Orchidarium remotely. This installs Docker and Pi helper packages, syncs the deployable source tree to `/home/tigerlily/orchidarium`, installs the Orchidarium udev rules, generates Grafana certificates, and runs Docker Compose on the Pi.
+
+   ```text
+   ./scripts/remote/up.sh
+   ```
+
+Reset the remote stack before starting it:
+
+   ```text
+   ./scripts/remote/up.sh --reset
+   ```
+
+Start the remote stack with debug logging:
+
+   ```text
+   ./scripts/remote/up.sh --debug
+   ```
+
+Stop Orchidarium remotely. This runs Docker Compose down on the Pi and removes the installed Orchidarium udev rules.
+
+   ```text
+   ./scripts/remote/down.sh
+   ```
+
+Password-based SSH defaults require `sshpass` on the machine running Ansible unless SSH keys are configured. Override the target by editing [`ansible/inventory/hosts.yml`](./ansible/inventory/hosts.yml), or pass normal `ansible-playbook` arguments through either wrapper.
+
+Use the dashboard profile remotely the same way as local Compose:
+
+   ```text
+   COMPOSE_PROFILES=dashboard ./scripts/remote/up.sh
+   ```
+
+For a headless Pi without a Wayland session, run the remote stack offscreen:
+
+   ```text
+   QT_QPA_PLATFORM=offscreen WAYLAND_RUNTIME_DIR=/tmp ./scripts/remote/up.sh
+   ```
 
 ### Docker Compose
 
@@ -119,6 +329,12 @@ Start the local core stack. This installs and reloads the Orchidarium udev rules
 
    ```text
    ./scripts/local/up.sh
+   ```
+
+Start the local stack with debug logging:
+
+   ```text
+   ./scripts/local/up.sh --debug
    ```
 
 Start Grafana and MySQL as well when the dashboard stack is needed:
@@ -150,6 +366,8 @@ If it overlaps, choose a private subnet that is not used by Wi-Fi, VPN, or other
 
 InfluxDB and MySQL use persistent Docker volumes instead of tmpfs by default, and Grafana/MySQL are behind the `dashboard` profile to keep the Raspberry Pi responsive enough for SSH during normal controller runs.
 
+Remote Ansible startup refuses to run Docker Compose when `ORCHIDARIUM_DOCKER_SUBNET` overlaps the declared Raspberry Pi network, Wi-Fi, LAN, VPN, or other non-Docker host routes visible on the Pi.
+
 #### UI Display
 
 The UI process uses Wayland by default on Linux / Raspberry Pi. [`scripts/.env.sh`](./scripts/.env.sh) sets `QT_QPA_PLATFORM=wayland`, mounts the host user's `WAYLAND_RUNTIME_DIR` at `/wayland-runtime`, and runs the Orchidarium container as the current UID / GID so the Wayland socket can be opened.
@@ -162,15 +380,13 @@ Run `./scripts/local/up.sh` from the same desktop user that owns the Wayland ses
 
 On macOS, Docker Desktop does not expose a host Wayland session. Local startup defaults to `QT_QPA_PLATFORM=offscreen`, `QT_QUICK_BACKEND=software`, and the private `/tmp/orchidarium` runtime directory so the stack can run for testing without a display socket.
 
-To display the UI on macOS, run an X server such as XQuartz and override the backend. In XQuartz, enable `Settings > Security > Allow connections from network clients`, then fully quit and reopen XQuartz. Allow local clients before starting the stack:
+To display the UI on macOS, run an X server such as XQuartz and override the backend. In XQuartz, enable `Settings > Security > Allow connections from network clients`, then fully quit and reopen XQuartz. Start XQuartz before starting the stack:
 
    ```text
    open -a XQuartz
-   export DISPLAY=:0
-   /opt/X11/bin/xhost +localhost
    ```
 
-Then start the stack with the Docker-facing display value:
+Then start the stack with the Docker-facing display value. The local startup wrapper runs `/opt/X11/bin/xhost +localhost` against XQuartz before Docker Compose starts.
 
    ```text
    QT_QPA_PLATFORM=xcb DISPLAY=host.docker.internal:0 WAYLAND_RUNTIME_DIR=/tmp ./scripts/local/up.sh

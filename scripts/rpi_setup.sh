@@ -236,6 +236,7 @@ sudo curl -fsSL https://download.docker.com/linux/debian/gpg \
 
 sudo chmod a+r /etc/apt/keyrings/docker.asc
 
+# shellcheck disable=SC1091
 . /etc/os-release
 : > /etc/apt/sources.list.d/docker.list
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian $VERSION_CODENAME stable" \
@@ -253,8 +254,5 @@ _setup_python_runtime
 
 # Install poetry.
 _install_poetry
-
-# There's a GPIO group by default.
-sudo usermod -a -G gpio tigerlily
 
 # Now, run: sudo i2cdetect -y 1 to see what's connected over the bus.

@@ -1,5 +1,5 @@
 """
-Serve sensor metadata endpoints when in daemon mode.
+Serve metrics sensor metadata endpoints when in daemon mode.
 """
 
 
@@ -7,11 +7,11 @@ from http import HTTPStatus
 
 import logging
 
-from attrs import define
 from cattrs import unstructure
 from flask import Flask
 from flask.typing import ResponseReturnValue
 
+from orchidarium.api.schemas import ActiveSensorsResponse
 from orchidarium.sensors import sensor_count
 
 log = logging.getLogger(__name__)
@@ -20,11 +20,6 @@ log = logging.getLogger(__name__)
 __all__ = [
     'create_sensor_api',
 ]
-
-
-@define
-class _ActiveSensorsResponse:
-    active_sensors: int
 
 
 def create_sensor_api(app: Flask) -> None:
@@ -37,13 +32,15 @@ def create_sensor_api(app: Flask) -> None:
 
     log.debug(f'Creating sensor API')
 
-    @app.get('/sensors/active')
+    @app.get('/metrics/sensors/active')
     def active_sensors() -> ResponseReturnValue:
         """
         Return the number of active sensor types.
 
+        Active sensors are discovered sensor classes that are currently enabled.
+
         Returns:
-            ResponseReturnValue: an object with schema like
+            ResponseReturnValue: JSON payload and HTTP 200 status. The payload has schema like
 
             {
                 "active_sensors": 0
@@ -51,7 +48,7 @@ def create_sensor_api(app: Flask) -> None:
         """
         return (
             unstructure(
-                _ActiveSensorsResponse(
+                ActiveSensorsResponse(
                     active_sensors=sensor_count()
                 )
             ),

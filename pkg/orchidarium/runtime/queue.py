@@ -5,13 +5,17 @@ Read queue runtime state.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING
 
 from cattrs import unstructure
 
 from orchidarium import env
 from orchidarium.data import metric_queues
+from orchidarium.runtime.config import configured_env_value
 from orchidarium.runtime.state import read_runtime_state
+
+if TYPE_CHECKING:
+    from typing import Any
 
 
 __all__ = [
@@ -29,7 +33,7 @@ def max_point_backlog() -> int:
     Returns:
         int: maximum allowed point backlog before readiness fails.
     """
-    return int(env['MAX_POINT_BACKLOG'])
+    return int(configured_env_value('MAX_POINT_BACKLOG', env['MAX_POINT_BACKLOG']))
 
 
 def get_queue_summary() -> dict[str, Any]:
@@ -63,7 +67,9 @@ def is_point_backlog_ready() -> bool:
     Returns:
         bool: True when more work may be scheduled to this container.
     """
-    return _current_point_backlog() < max_point_backlog()
+    configured_max = max_point_backlog()
+
+    return configured_max == 0 or _current_point_backlog() < configured_max
 
 
 def get_point_backlog_health() -> dict[str, int | bool]:
@@ -79,5 +85,5 @@ def get_point_backlog_health() -> dict[str, int | bool]:
     return {
         'current_backlog': current_backlog,
         'max_point_backlog': configured_max,
-        'ready': current_backlog < configured_max
+        'ready': configured_max == 0 or current_backlog < configured_max
     }

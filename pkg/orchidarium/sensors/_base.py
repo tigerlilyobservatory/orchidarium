@@ -3,11 +3,11 @@ from __future__ import annotations
 import logging
 
 from abc import abstractmethod, ABC
-from typing import ClassVar, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from orchidarium.data.queue import MetricQueueSink
-    from typing import Literal
+    from typing import ClassVar, Literal
 
 
 log = logging.getLogger(__name__)
@@ -21,7 +21,7 @@ class Sensor(ABC):
         self._col: bool = False
         self._pub: bool = False
         self._temperature = default_temperature
-        log.info(f'Instantiating thread for sensor "{self.__class__.__name__.lower().removesuffix("sensor")}"')
+        log.debug(f'Instantiating thread for sensor "{self.__class__.__name__.lower().removesuffix("sensor")}"')
 
     @property
     def _collection(self) -> bool:

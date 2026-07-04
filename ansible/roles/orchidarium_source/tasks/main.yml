@@ -1,0 +1,50 @@
+---
+- name: Ensure remote Orchidarium directory exists
+  become: true
+  ansible.builtin.file:
+    path: "{{ orchidarium_remote_root }}"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0755'
+
+- name: Remove stale deployed source items
+  become: true
+  ansible.builtin.file:
+    path: "{{ orchidarium_remote_root }}/{{ item }}"
+    state: absent
+  loop: "{{ orchidarium_source_items }}"
+
+- name: Copy Orchidarium source items
+  become: true
+  ansible.builtin.copy:
+    src: "{{ orchidarium_source_root }}/{{ item }}"
+    dest: "{{ orchidarium_remote_root }}/"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: preserve
+  loop: "{{ orchidarium_source_items }}"
+
+- name: Write remote Compose environment wrapper
+  become: true
+  ansible.builtin.template:
+    src: remote-env.sh.j2
+    dest: "{{ orchidarium_remote_root }}/.ansible-env.sh"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0600'
+
+- name: Ensure remote persisted configuration directory exists
+  become: true
+  ansible.builtin.file:
+    path: "{{ orchidarium_remote_root }}/.orchidarium"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0755'
+
+- name: Generate local self-signed Grafana certificates
+  ansible.builtin.command: bash scripts/generate-test-self-signed-certs.sh
+  args:
+    chdir: "{{ orchidarium_remote_root }}"
+    creates: "{{ orchidarium_remote_root }}/certs/cert.pem"

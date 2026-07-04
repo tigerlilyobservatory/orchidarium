@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import inspect
 
-from collections.abc import Generator
+from collections.abc import Iterator
 from functools import lru_cache
 
 from ._base import Sensor
 
 
-def _sensor_types() -> Generator[type[Sensor]]:
+def _sensor_types() -> Iterator[type[Sensor]]:
     import orchidarium.sensors
 
     for _, obj in inspect.getmembers(orchidarium.sensors, inspect.isclass):
@@ -27,7 +27,7 @@ def sensor_count() -> int:
     return sum(1 for _ in _sensor_types())
 
 
-def sensor_generator() -> Generator[type[Sensor]]:
+def sensor_generator() -> Iterator[type[Sensor]]:
     """
     Iterate over sensor types with this generator.
 

@@ -22,19 +22,39 @@ USER root
 
 RUN apt update \
     && apt install -y --no-install-recommends \
+        fonts-roboto \
+        libasound2 \
+        libatk-bridge2.0-0 \
+        libatk1.0-0 \
+        libcups2 \
         libdbus-1-3 \
+        libdrm2 \
         libegl1 \
+        libevent-2.1-7t64 \
         libfontconfig1 \
+        libgbm1 \
         libgl1 \
         libglib2.0-0 \
         libhidapi-dev \
         libice6 \
+        libminizip1t64 \
+        libnspr4 \
+        libnss3 \
         libopengl0 \
+        libopus0 \
         libsm6 \
+        libsnappy1v5 \
+        libwebp7 \
+        libwebpdemux2 \
+        libwebpmux3 \
         libwayland-cursor0 \
         libwayland-egl1 \
         libx11-6 \
         libx11-xcb1 \
+        libxcomposite1 \
+        libxdamage1 \
+        libxext6 \
+        libxfixes3 \
         libxcb-cursor0 \
         libxcb-icccm4 \
         libxcb-image0 \
@@ -53,7 +73,11 @@ RUN apt update \
         libxi6 \
         libxkbcommon-x11-0 \
         libxkbcommon0 \
+        libxkbfile1 \
+        libxrandr2 \
         libxrender1 \
+        libxshmfence1 \
+        libxtst6 \
     && rm -rf /var/lib/apt/lists/*
 
 ENV TINI_VERSION=${TINI_VERSION}
@@ -68,8 +92,8 @@ RUN groupadd orchidarium \
 WORKDIR /opt/orchidarium
 
 # Ensure that the 'orchidarium' user owns the working directories.
-RUN mkdir -p /wayland-runtime \
-    && chown -R orchidarium:orchidarium . /wayland-runtime
+RUN mkdir -p /wayland-runtime /opt/orchidarium/.orchidarium \
+    && chown -R orchidarium:orchidarium . /wayland-runtime /opt/orchidarium/.orchidarium
 
 USER 10001
 
@@ -103,6 +127,7 @@ USER root
 RUN python -m pip install --no-cache-dir --no-compile . \
     && python -c "import orchidarium" \
     && python -c "from PySide6.QtGui import QGuiApplication" \
+    && python -c "from PySide6.QtWebEngineQuick import QtWebEngineQuick" \
     && python -c "from shutil import which; assert which('orchidarium'), 'orchidarium command not installed'" \
     && rm -rf ./pkg ./README.md ./LICENSE ./poetry.lock ./pyproject.toml
 

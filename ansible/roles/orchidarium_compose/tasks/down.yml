@@ -1,0 +1,20 @@
+---
+- name: Check for deployed Compose file
+  ansible.builtin.stat:
+    path: "{{ orchidarium_remote_root }}/compose.yaml"
+  register: orchidarium_compose_file
+
+- name: Stop Orchidarium with Docker Compose
+  become: true
+  ansible.builtin.shell: |
+    set -euo pipefail
+    if [ -f .ansible-env.sh ]; then
+        source .ansible-env.sh
+    fi
+    docker compose down {{ orchidarium_compose_down_args }}
+  args:
+    chdir: "{{ orchidarium_remote_root }}"
+    executable: /bin/bash
+  environment:
+    COMPOSE_PROFILES: "{{ orchidarium_compose_profiles }}"
+  when: orchidarium_compose_file.stat.exists

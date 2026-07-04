@@ -29,6 +29,41 @@ __all__ = [
 
 
 def _health_response(healthy: bool) -> ResponseReturnValue:
+    """
+    Build the shared health and readiness response payload.
+
+    Args:
+        healthy (bool): whether the endpoint should report success.
+
+    Returns:
+        ResponseReturnValue: JSON payload and HTTP status. The payload has schema like
+
+        {
+            "status": "OK | Failed",
+            "hardware_process": {
+                "status": "starting | running | healthy | failed",
+                "process_name": "hardware",
+                "last_heartbeat_at": "ISO-8601 timestamp | null",
+                "heartbeat_timeout_seconds": 5.0,
+                "heartbeat_age_seconds": 0.0,
+                "last_error": "error detail | null"
+            },
+            "point_backlog": {
+                "current_backlog": 0,
+                "max_point_backlog": 1000,
+                "ready": true
+            },
+            "thread_pool": {
+                "status": "starting | running | healthy | failed",
+                "expected_workers": 0,
+                "completed_workers": 0,
+                "failed_workers": 0,
+                "last_run_successful": false,
+                "successful_runs": 0,
+                "last_error": "error detail | null"
+            }
+        }
+    """
     return (
         {
             'status': 'OK' if healthy else 'Failed',
@@ -55,14 +90,38 @@ def create_healthcheck_api(app: Flask) -> None:
         """
         Quick unauthenticated healthcheck endpoint.
 
+        This endpoint reports process liveness. It returns HTTP 200 when the metrics thread pool is running or
+        healthy, the hardware process has a recent heartbeat, and no sensor workers have failed. It returns HTTP
+        503 with the same payload schema when those liveness checks fail. The point backlog is included for
+        debugging context, but it does not decide the /health status.
+
         Returns:
-            ResponseReturnValue: an object with schema like
+            ResponseReturnValue: JSON payload and HTTP status. The payload has schema like
 
             {
-                "hardware_process": {},
-                "point_backlog": {},
-                "status": "OK",
-                "thread_pool": {}
+                "status": "OK | Failed",
+                "hardware_process": {
+                    "status": "starting | running | healthy | failed",
+                    "process_name": "hardware",
+                    "last_heartbeat_at": "ISO-8601 timestamp | null",
+                    "heartbeat_timeout_seconds": 5.0,
+                    "heartbeat_age_seconds": 0.0,
+                    "last_error": "error detail | null"
+                },
+                "point_backlog": {
+                    "current_backlog": 0,
+                    "max_point_backlog": 1000,
+                    "ready": true
+                },
+                "thread_pool": {
+                    "status": "starting | running | healthy | failed",
+                    "expected_workers": 0,
+                    "completed_workers": 0,
+                    "failed_workers": 0,
+                    "last_run_successful": false,
+                    "successful_runs": 0,
+                    "last_error": "error detail | null"
+                }
             }
         """
         return _health_response(
@@ -75,14 +134,38 @@ def create_healthcheck_api(app: Flask) -> None:
         """
         Quick unauthenticated readiness endpoint.
 
+        This endpoint reports whether the container should receive work. It returns HTTP 200 only when the
+        metrics thread pool is ready, the hardware process has a recent heartbeat, and the largest publisher
+        queue backlog is below MAX_POINT_BACKLOG. A MAX_POINT_BACKLOG value of 0 disables this backlog cap.
+        It returns HTTP 503 with the same payload schema otherwise.
+
         Returns:
-            ResponseReturnValue: an object with schema like
+            ResponseReturnValue: JSON payload and HTTP status. The payload has schema like
 
             {
-                "hardware_process": {},
-                "point_backlog": {},
-                "status": "OK",
-                "thread_pool": {}
+                "status": "OK | Failed",
+                "hardware_process": {
+                    "status": "starting | running | healthy | failed",
+                    "process_name": "hardware",
+                    "last_heartbeat_at": "ISO-8601 timestamp | null",
+                    "heartbeat_timeout_seconds": 5.0,
+                    "heartbeat_age_seconds": 0.0,
+                    "last_error": "error detail | null"
+                },
+                "point_backlog": {
+                    "current_backlog": 0,
+                    "max_point_backlog": 1000,
+                    "ready": true
+                },
+                "thread_pool": {
+                    "status": "starting | running | healthy | failed",
+                    "expected_workers": 0,
+                    "completed_workers": 0,
+                    "failed_workers": 0,
+                    "last_run_successful": false,
+                    "successful_runs": 0,
+                    "last_error": "error detail | null"
+                }
             }
         """
         return _health_response(

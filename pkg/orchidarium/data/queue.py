@@ -5,17 +5,29 @@ Provide a thread-safe queue for sensor data points that have been collected, but
 
 from __future__ import annotations
 
+import logging
+
 from collections import deque
 from datetime import datetime, timedelta, timezone
 from queue import Empty, Queue
 from threading import Lock
-from typing import Literal, Mapping, Protocol
+from typing import TYPE_CHECKING, Protocol
 
 from attrs import define, field
 
+if TYPE_CHECKING:
+    from typing import Literal, Mapping
+
 
 MetricField = bool | int | float | str
-_QueueAction = Literal['initialized', 'enqueued', 'dequeued']
+
+if TYPE_CHECKING:
+    _QueueAction = Literal['initialized', 'enqueued', 'dequeued']
+else:
+    _QueueAction = str
+
+
+log = logging.getLogger(__name__)
 
 
 def _coerce_fields(fields: Mapping[str, MetricField]) -> dict[str, MetricField]:
@@ -55,6 +67,24 @@ def _coerce_measurement(measurement: object) -> str:
         raise ValueError('MetricDatum.measurement must not be empty')
 
     return result
+
+
+def _format_metric_datum(datum: MetricDatum) -> dict[str, object]:
+    """
+    Format a metric datum for debug logging.
+
+    Args:
+        datum (MetricDatum): metric datum to format.
+
+    Returns:
+        dict[str, object]: log-safe metric payload.
+    """
+    return {
+        'measurement': datum.measurement,
+        'tags': datum.tags,
+        'fields': datum.fields,
+        'timestamp': datum.timestamp.isoformat(),
+    }
 
 
 @define(frozen=True)
@@ -277,7 +307,16 @@ class DataQueueRegistry:
         Args:
             datum (MetricDatum): metric datum to enqueue.
         """
-        for data_queue in self.queues.values():
+        queues = self.queues
+
+        if log.isEnabledFor(logging.DEBUG):
+            log.debug(
+                'Metric datum before publisher queue duplication: destination_queues=%s payload=%s',
+                sorted(queues),
+                _format_metric_datum(datum)
+            )
+
+        for data_queue in queues.values():
             data_queue.append(datum)
 
     def register(self, name: str, data_queue: DataQueue | None = None) -> DataQueue:

@@ -19,6 +19,7 @@ from cattrs import unstructure
 from orchidarium.data import metric_queues
 from orchidarium.logging import configure_logging
 from orchidarium.publishers.influxdb import InfluxDBPublisher
+from orchidarium.runtime.config import configured_env_value
 from orchidarium.runtime.health import mark_thread_pool_failed, mark_thread_pool_healthy, mark_thread_pool_started
 from orchidarium.runtime.state import update_runtime_state
 from orchidarium.sensors import sensor_count, sensor_generator
@@ -55,6 +56,16 @@ def _publish_queue_summary() -> None:
     Publish the current queue summary for the API process.
     """
     update_runtime_state(queue=unstructure(metric_queues.activity_summary()))
+
+
+def _collection_interval() -> int:
+    """
+    Return the current metrics collection interval.
+
+    Returns:
+        int: collection interval in seconds.
+    """
+    return int(configured_env_value('INTERVAL', env['INTERVAL']))
 
 
 def _publish_to_backend(publisher_spec: PublisherSpec) -> tuple[str, int]:
@@ -137,7 +148,7 @@ def run_metrics_process() -> int:
 
             if _worker_count < 1:
                 mark_thread_pool_failed(error='No enabled sensors discovered')
-                sleep(int(env['INTERVAL']))
+                sleep(_collection_interval())
                 continue
 
             # Start as many threads as there are sensors.
@@ -180,7 +191,7 @@ def run_metrics_process() -> int:
                 mark_thread_pool_healthy(completed_workers=len(threads))
                 _ret_code = 0
 
-            sleep(int(env['INTERVAL']))
+            sleep(_collection_interval())
     except Exception as e:
         _ret_code = 1
         mark_thread_pool_failed(error=e)
