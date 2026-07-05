@@ -9,6 +9,75 @@ from pathlib import Path
 import gmsh
 
 
+show_bounds = False
+
+class BoundedObject:
+    """Base class for objects with a bounding box."""
+    
+    def __init__(self, length: float, width: float, height: float, show_bounds=None) -> None:
+        self.show_bounds = show_bounds
+        self.length = length
+        self.width = width
+        self.height = height
+
+    @property
+    def bounding_box(self) -> tuple[float, float, float, float, float, float]:
+        """Return the bounding box as (xmin, ymin, zmin, xmax, ymax, zmax)."""
+        return (0.0, 0.0, 0.0, self.length, self.width, self.height)
+
+    def draw(self, x, y, z, x_anchor="center", y_anchor="center", z_anchor="bottom") -> None:
+        """Draw the object at the specified position with the given anchor point."""
+        # Calculate the position based on the anchor points
+        if x_anchor == "center":
+            x -= self.length / 2
+        elif x_anchor == "right":
+            x -= self.length
+
+        if y_anchor == "center":
+            y -= self.width / 2
+        elif y_anchor == "back":
+            y -= self.width
+
+        if z_anchor == "center":
+            z -= self.height / 2
+        elif z_anchor == "top":
+            z -= self.height
+        
+        if self.show_bounds or show_bounds:
+            # Draw the bounding box
+            gmsh.model.occ.addBox(x, y, z, self.length, self.width, self.height)
+        
+        self.draw_at_position(x, y, z)
+
+class MotorMount(BoundedObject):
+    """A simple motor mount with a bounding box."""
+
+    self.mount_length, self.mount_width, self.mount_height = 100, 75.5, 8
+    self.total_height=87.5
+    self.motor_diameter=84.5
+    self.motor_width=200
+    self.width_to_mount=93
+    self.mount_hole_offset = 4.34
+    self.mount_hole_diameter = 10.14
+
+    def __init__(self, show_bounds=None) -> None:
+
+        super().__init__(length, width, height, show_bounds)
+
+    def draw_at_position(self, x: float, y: float, z: float) -> None:
+        gmsh.model.occ.addBox(x, y, z, self.length, self.width, self.height)
+
+
+left_wall = Panel(
+    Component(Motor(), 15, 0, 0, x_anchor="left", y_anchor="back", z_anchor="bottom"),
+    Component()
+
+
+
+)
+
+
+
 MODEL_NAME = "levi_box"
 WALL_THICKNESS_MM = 2.0
 OUTER_LENGTH_MM = 120.0
