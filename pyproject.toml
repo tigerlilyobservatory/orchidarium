@@ -50,7 +50,6 @@ dependencies = [
     "cattrs (>=25.3.0)",
     "cachetools (>=7.0.5)",
     "python-openapi (>=0.3,<0.4)",
-    "gmsh (>=4.15.2,<5.0.0)"
 ]
 
 [tool.poetry]
